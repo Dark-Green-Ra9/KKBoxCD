@@ -250,6 +250,20 @@ namespace KKBoxCD.Core.Support
             }
         }
 
+        public async Task<string> GetElementInnerText(string selector)
+        {
+            try
+            {
+                ElementHandle element = await mPage.QuerySelectorAsync(selector);
+                JSHandle handler = await element.GetPropertyAsync("innerText");
+                return handler.ToString().Replace("JSHandle:", string.Empty);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         public async Task<string[]> GetElementClassListAsynct(string selector)
         {
             try

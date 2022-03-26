@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading;
 using KKBoxCD.Core.Manager;
 using KKBoxCD.Core.Support;
+using KKBoxCD.Properties;
 using PuppeteerExtraSharp;
 using PuppeteerSharp;
 using RestSharp;
@@ -83,7 +84,8 @@ namespace KKBoxCD.Core
                     bool success = IsExist();
                     if (!success)
                     {
-                        mAccountManager.Write(Account, WriteType.Wrong);
+                        Account.Status = AccountStatus.NotExist.ToString();
+                        mAccountManager.Write(Account);
                         Account = null;
                         continue;
                     }
@@ -92,7 +94,7 @@ namespace KKBoxCD.Core
                     PuppeteerExtra extra = new PuppeteerExtra();
                     LaunchOptions options = new LaunchOptions()
                     {
-                        Headless = false,
+                        Headless = true,
                         ExecutablePath = Consts.ChromeFile,
                         DefaultViewport = null,
                         Args = new string[]
@@ -104,7 +106,111 @@ namespace KKBoxCD.Core
                     Page = Browser.PagesAsync().Result[0];
                     PageCTL = new PageCTL(Page);
 
-                    Thread.Sleep(5000);
+                    Log(">> Truy cập trang");
+                    success = PageCTL.GoToAsync("https://kkid.kkbox.com/login", "#show-username", new NavigationOptions
+                    {
+                        WaitUntil = new WaitUntilNavigation[]
+                        {
+                            WaitUntilNavigation.DOMContentLoaded
+                        }
+                    }).Result;
+                    if (!success)
+                    {
+                        throw new Exception("Truy cập trang thất bại");
+                    }
+
+                    Log(">> Tiêm trích trang");
+                    Thread.Sleep(250);
+                    try
+                    {
+                        Page.EvaluateExpressionAsync(Resources.KKBoxInject).Wait();
+                    }
+                    catch
+                    {
+                        throw new Exception("Tiêm trích trang thất bại");
+                    }
+
+                    Log(">> Gửi lệnh đăng nhập");
+                    Thread.Sleep(250);
+                    try
+                    {
+                        Page.EvaluateFunctionAsync(@"
+                        (username, password) => {
+                            window.__username = username;
+                            window.__password = password;
+                            challenge();
+                        }", Account.Email, Account.Password).Wait();
+                    }
+                    catch
+                    {
+                        throw new Exception("Gửi lệnh đăng nhập thất bại");
+                    }
+
+                    Log(">> Đợi kết quả đăng nhập");
+                    success = PageCTL.WaitForExistAnyAsync(new string[]
+                    {
+                        "#toast-content",
+                        "#logout"
+                    }).Result;
+                    if (!success)
+                    {
+                        throw new Exception("Đợi kết quả đăng nhập thất bại");
+                    }
+
+                    Log(">> Kiểm tra kết quả đăng nhập");
+                    Thread.Sleep(250);
+                    if (PageCTL.ExistAsync("#logout").Result)
+                    {
+                        Log(">> Tiến hành lấy trạng thái tài khoản");
+                        Thread.Sleep(250);
+                        try
+                        {
+                            Account.Plan = Page.EvaluateFunctionAsync<string>(@"
+                            () => {
+                                try {
+                                    const xhr = new XMLHttpRequest();
+                                    xhr.open('GET', '/plan', false);
+                                    xhr.send();
+                                    document.body.outerHTML = xhr.responseText;
+
+                                    const card = document.querySelector('.plan_card');
+                                    const data = card.innerText.split('\n');
+
+                                    var plan = '';
+                                    if (data.length > 0) {
+                                        plan += data[0] + ' | ';
+                                    }
+                                    if (data.length > 1) {
+                                        plan += data[1] + ' | ';
+                                    }
+                                    if (data.length > 4) {
+                                        plan += data[4] + ' | ';
+                                    }
+                                    if (data.length > 12) {
+                                        plan += data[12];
+                                    }
+                                    return plan;
+                                
+                                } catch {
+                                    return '';
+                                }
+                            }").Result;
+                        }
+                        catch { }
+
+                        Log(">> Ghi kết quả");
+                        Account.Status = AccountStatus.Perfect.ToString();
+                        mAccountManager.Write(Account);
+                        Account = null;
+                    }
+                    else if (PageCTL.ExistAsync("#toast-content").Result)
+                    {
+
+                    }
+                    else
+                    {
+                        throw new Exception("Kiểm tra kết quả đăng nhập thất bại");
+                    }
                 }
                 catch (Exception ex)
                 {

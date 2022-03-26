@@ -14,9 +14,9 @@ namespace KKBoxCD
         public static readonly string AccountFile = Path.Combine(DataDir, "account.txt");
         public static readonly string RanFile = Path.Combine(DataDir, "ran.txt");
         public static readonly string ProxyFile = Path.Combine(DataDir, "proxy.txt");
+        public static readonly string PerfectFile = Path.Combine(OutputDir, "prefect.txt");
         public static readonly string WrongFile = Path.Combine(OutputDir, "wrong.txt");
-        public static readonly string FreeFile = Path.Combine(OutputDir, "free.txt");
-        public static readonly string PremFile = Path.Combine(OutputDir, "prem.txt");
+        public static readonly string NotExistFile = Path.Combine(OutputDir, "not_exist.txt");
 
     }
 }

@@ -97,27 +97,28 @@ namespace KKBoxCD.Core.Manager
             RawData.Add(account.Raw);
         }
 
-        public void Write(Account account, WriteType type)
+        public void Write(Account account)
         {
             try
             {
-                string line = string.Concat(account.ToString(), Environment.NewLine);
+                File.AppendAllText(Consts.RanFile, string.Concat(account.Raw, Environment.NewLine));
 
+                string line = string.Concat(account.ToString(), Environment.NewLine);
                 if (!Directory.Exists(Consts.OutputDir))
                 {
                     Directory.CreateDirectory(Consts.OutputDir);
                 }
-                if (type == WriteType.Wrong)
+                if (account.Status.Equals(AccountStatus.Perfect.ToString()))
+                {
+                    File.AppendAllText(Consts.PerfectFile, line);
+                }
+                if (account.Status.Equals(AccountStatus.Wrong.ToString()))
                 {
                     File.AppendAllText(Consts.WrongFile, line);
                 }
-                else if (type == WriteType.Free)
+                if (account.Status.Equals(AccountStatus.NotExist.ToString()))
                 {
-                    File.AppendAllText(Consts.FreeFile, line);
-                }
-                else if (type == WriteType.Prem)
-                {
-                    File.AppendAllText(Consts.PremFile, line);
+                    File.AppendAllText(Consts.NotExistFile, line);
                 }
             }
             catch { }
@@ -150,6 +151,10 @@ namespace KKBoxCD.Core.Manager
 
         public string Password { set; get; }
 
+        public string Status { set; get; }
+
+        public string Plan { set; get; }
+
         public Account(string raw)
         {
             if (string.IsNullOrEmpty(raw))
@@ -170,7 +175,14 @@ namespace KKBoxCD.Core.Manager
 
         public override string ToString()
         {
-            return string.Concat(Email, ":", Password);
+            return string.Concat(Email, ":", Password, ":", Status, ":", Plan);
         }
+    }
+
+    public enum AccountStatus
+    {
+        Perfect,
+        Wrong,
+        NotExist
     }
 }
