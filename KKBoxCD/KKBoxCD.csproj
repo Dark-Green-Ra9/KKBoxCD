@@ -235,6 +235,7 @@
     <Compile Include="Core\AutoThread.cs" />
     <Compile Include="Core\Manager\AccountManager.cs" />
     <Compile Include="Core\Manager\ProxyManager.cs" />
+    <Compile Include="Core\Statics.cs" />
     <Compile Include="Core\Support\PageCTL.cs" />
     <Compile Include="Core\Utils\Config.cs" />
     <Compile Include="Core\Utils\EqualityComparer.cs" />

@@ -1,5 +1,9 @@
 ﻿using System;
+using System.IO;
+using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using KKBoxCD.Core.Manager;
 using KKBoxCD.Core.Support;
@@ -14,6 +18,7 @@ namespace KKBoxCD.Core
     {
         private readonly AccountManager mAccountManager;
         private readonly ProxyManager mProxyManager;
+        private readonly bool IsDebug = false;
 
         #region Properties Variable
 
@@ -51,7 +56,10 @@ namespace KKBoxCD.Core
 
         private void Log(string content)
         {
-            Console.WriteLine("[THREAD_{0}] {1}", ThreadID, content);
+            if (IsDebug)
+            {
+                Console.WriteLine("[THREAD_{0}] {1}", ThreadID, content);
+            }
         }
 
         #endregion
@@ -87,6 +95,8 @@ namespace KKBoxCD.Core
                         Account.Status = AccountStatus.NotExist.ToString();
                         mAccountManager.Write(Account);
                         Account = null;
+                        Statics.NotExist++;
+                        Statics.Show();
                         continue;
                     }
 
@@ -94,17 +104,29 @@ namespace KKBoxCD.Core
                     PuppeteerExtra extra = new PuppeteerExtra();
                     LaunchOptions options = new LaunchOptions()
                     {
-                        Headless = true,
+                        Headless = !IsDebug,
                         ExecutablePath = Consts.ChromeFile,
-                        DefaultViewport = null,
                         Args = new string[]
                         {
-
+                            $"--proxy-server=\"{Proxy.Address}:{Proxy.Port}\"",
+                            "--disable-web-security",
+                            "--no-sandbox",
+                            "--disable-setuid-sandbox",
+                            "--disable-dev-shm-usage",
+                            "--disable-accelerated-2d-canvas",
+                            "--no-first-run",
+                            "--no-zygote",
+                            "--disable-gpu"
                         },
                     };
                     Browser = extra.LaunchAsync(options).Result;
                     Page = Browser.PagesAsync().Result[0];
                     PageCTL = new PageCTL(Page);
+
+                    Log(">> Ghi đè Request");
+                    Page.SetRequestInterceptionAsync(true).Wait();
+                    Page.Request += OnRequest;
+                    Page.Response += OnResponse;
 
                     Log(">> Truy cập trang");
                     success = PageCTL.GoToAsync("https://kkid.kkbox.com/login", "#show-username", new NavigationOptions
@@ -158,7 +180,6 @@ namespace KKBoxCD.Core
                     }
 
                     Log(">> Kiểm tra kết quả đăng nhập");
-                    Thread.Sleep(250);
                     if (PageCTL.ExistAsync("#logout").Result)
                     {
                         Log(">> Tiến hành lấy trạng thái tài khoản");
@@ -202,10 +223,46 @@ namespace KKBoxCD.Core
                         Account.Status = AccountStatus.Perfect.ToString();
                         mAccountManager.Write(Account);
                         Account = null;
+                        Statics.Perfect++;
+                        Statics.Show();
                     }
                     else if (PageCTL.ExistAsync("#toast-content").Result)
                     {
+                        Log(">> Đọc mã lỗi");
+                        string error_content;
+                        try
+                        {
+                            error_content = PageCTL.GetElementInnerText("#toast-content").Result;
 
+                        }
+                        catch
+                        {
+                            error_content = string.Empty;
+                        }
+
+                        Log(">> Phân loại lỗi");
+                        if (error_content.Equals("not_verified"))
+                        {
+                            Log(">> Ghi kết quả");
+                            Account.Status = AccountStatus.NotExist.ToString();
+                            mAccountManager.Write(Account);
+                            Account = null;
+                            Statics.NotExist++;
+                            Statics.Show();
+                        }
+                        else if (error_content.Equals("login_failed"))
+                        {
+                            Log(">> Ghi kết quả");
+                            Account.Status = AccountStatus.Wrong.ToString();
+                            mAccountManager.Write(Account);
+                            Account = null;
+                            Statics.Wrong++;
+                            Statics.Show();
+                        }
+                        else
+                        {
+                            throw new Exception("Phân loại lỗi ngoại lệ");
+                        }
                     }
                     else
                     {
@@ -240,23 +297,111 @@ namespace KKBoxCD.Core
                         Page = null;
                     }
                     if (Browser != null)
+                    {
+                        try
                         {
-                            try
-                            {
-                                Browser.CloseAsync().Wait();
-                                Browser.Dispose();
-                            }
-                            catch { }
-                            Browser = null;
+                            Browser.CloseAsync().Wait();
+                            Browser.Dispose();
                         }
+                        catch { }
+                        Browser = null;
+                    }
 
                     GC.Collect();
                 }
             }
         }
 
+        private async void OnRequest(object sender, RequestEventArgs e)
+        {
+            Request req = e.Request;
+            ResourceType type = req.ResourceType;
+            if (type == ResourceType.Image || type == ResourceType.Img || type == ResourceType.Font)
+            {
+                await req.RespondAsync(new ResponseData
+                {
+                    ContentType = "image/png",
+                    BodyData = new byte[0],
+                    Status = HttpStatusCode.OK,
+                });
+            }
+            else if (type == ResourceType.StyleSheet)
+            {
+                await req.RespondAsync(new ResponseData
+                {
+                    ContentType = "text/css",
+                    Body = "",
+                    Status = HttpStatusCode.OK,
+                });
+            }
+            else if (type == ResourceType.Script)
+            {
+                try
+                {
+                    string name = Path.GetFileName(req.Url);
+                    string hash = Hash(name);
+                    string file = Path.Combine(Consts.CacheDir, hash);
+
+                    if (File.Exists(file))
+                    {
+                        string body = File.ReadAllText(file);
+                        await req.RespondAsync(new ResponseData
+                        {
+                            ContentType = "application/javascript",
+                            Body = body,
+                            Status = HttpStatusCode.OK,
+                        });
+                    }
+                    else
+                    {
+                        await req.ContinueAsync();
+                    }
+                }
+                catch
+                {
+                    await req.ContinueAsync();
+                }
+            }
+            else
+            {
+                await req.ContinueAsync();
+            }
+        }
+
+        private async void OnResponse(object sender, ResponseCreatedEventArgs e)
+        {
+            Response res = e.Response;
+            ResourceType type = res.Request.ResourceType;
+            try
+            {
+                if (type == ResourceType.Script)
+                {
+                    string name = Path.GetFileName(res.Request.Url);
+                    string hash = Hash(name);
+                    string file = Path.Combine(Consts.CacheDir, hash);
+
+                    if (!Directory.Exists(Consts.CacheDir))
+                    {
+                        Directory.CreateDirectory(Consts.CacheDir);
+                    }
+                    if (!File.Exists(file))
+                    {
+                        File.WriteAllText(file, await res.TextAsync());
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private string Hash(string input)
+        {
+            var hash = new SHA1Managed().ComputeHash(Encoding.UTF8.GetBytes(input));
+            return string.Concat(hash.Select(b => b.ToString("x2")));
+        }
+
         private bool IsExist()
         {
+            return true;
             try
             {
                 WebProxy proxy = new WebProxy(Proxy.Address, Proxy.Port);
@@ -281,27 +426,6 @@ namespace KKBoxCD.Core
             catch
             {
                 throw new Exception("Kiểm tra Account thất bại");
-            }
-        }
-
-        private bool IsExpired()
-        {
-            try
-            {
-                return Page.EvaluateFunctionAsync<bool>(@"
-                () => {
-                    try {
-                        const auth = JSON.parse(localStorage['wp:auth:v2']);
-                        return auth.user.memberType == 'EXPIRED_PAID';
-                    }
-                    catch {
-                        return false;
-                    }
-                }").Result;
-            }
-            catch
-            {
-                return false;
             }
         }
 

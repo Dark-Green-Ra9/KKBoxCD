@@ -95,8 +95,8 @@ namespace KKBoxCD.Core.Support
                         return true;
                     }
                 }
-                await Task.Delay(3000);
-                timeout -= 3000;
+                await Task.Delay(1000);
+                timeout -= 1000;
             } while (timeout > 0);
 
             return false;

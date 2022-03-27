@@ -68,30 +68,6 @@ namespace KKBoxCD.Core.Manager
             }
         }
 
-        public Account Random()
-        {
-            if (RawData == null)
-            {
-                Load();
-            }
-            if (IsEmpty())
-            {
-                return null;
-            }
-
-            int index = new Random().Next(0, Count());
-            string raw_data = RawData[index];
-            RawData.RemoveAt(index);
-            try
-            {
-                return new Account(raw_data);
-            }
-            catch
-            {
-                return Random();
-            }
-        }
-
         public void Push(Account account)
         {
             RawData.Add(account.Raw);

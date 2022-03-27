@@ -8,7 +8,7 @@ namespace KKBoxCD
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static void Main()
         {
             Console.OutputEncoding = Encoding.UTF8;
 
@@ -16,9 +16,9 @@ namespace KKBoxCD
             for (int i = 0; i < config.ThreadSize; i++)
             {
                 new AutoThread(i).Start();
-                Thread.Sleep(2000);
+                Thread.Sleep(250);
             }
-            _ = Console.ReadKey();
+            Console.ReadKey();
         }
     }
 }
