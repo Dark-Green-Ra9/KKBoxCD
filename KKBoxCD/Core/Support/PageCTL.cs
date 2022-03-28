@@ -154,6 +154,34 @@ namespace KKBoxCD.Core.Support
             return false;
         }
 
+        public async Task<bool> WaitForElementAsync(string selector, Func<ElementHandle, bool> func, int timeout = 30000)
+        {
+            do
+            {
+                ElementHandle element;
+                try
+                {
+                    element = await mPage.QuerySelectorAsync(selector);
+                    
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    element = null;
+                }
+
+                if (element != null && func(element))
+                {
+                    return true;
+                }
+                await Task.Delay(1000);
+                timeout -= 1000;
+
+            } while (timeout > 0);
+
+            return false;
+        }
+
         public async Task<bool> SetInputValueAsync(string selector, string value)
         {
             try

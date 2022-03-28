@@ -61,13 +61,10 @@ namespace KKBoxCD.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to window.__username = &quot;&quot;;
-        ///window.__password = &quot;&quot;;
+        ///   Looks up a localized string similar to challenge = function() {
+        ///    const country_code = &quot;65&quot;;
+        ///    const territory_code = &quot;SG&quot;;
         ///
-        ///challenge = function() {
-        ///    const country_code = &quot;SG&quot;;
-        ///    const territory_code = &quot;65&quot;;
-        ///    
         ///    srp = new SRP();
         ///    srp.init();
         ///    srp.computeA();
@@ -80,7 +77,10 @@ namespace KKBoxCD.Properties {
         ///    $(&quot;#phone_territory_code&quot;).val(territory_code);
         ///
         ///    $.ajax({
-        ///        method: [rest of string was truncated]&quot;;.
+        ///        method: &quot;POST&quot;,
+        ///        url: &quot;/challenge&quot;,
+        ///        data: {
+        ///  [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string KKBoxInject {
             get {

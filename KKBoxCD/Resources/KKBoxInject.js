@@ -23,7 +23,6 @@ challenge = function() {
             a: srp.A.toString(16),
         },
     }).fail(function(xhr) {
-        redirect = window.location.pathname;
         switch (xhr.status) {
             case 401:
                 toast("not_verified");
@@ -61,7 +60,6 @@ challenge_reply = function(data) {
             a: srp.A.toString(16),
         },
     }).fail(function(xhr) {
-        redirect = window.location.pathname;
         switch (xhr.status) {
             case 400:
             case 404:

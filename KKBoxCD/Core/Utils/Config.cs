@@ -35,6 +35,8 @@ namespace KKBoxCD.Core.Utils
 
         public int ThreadSize { get; set; } = 1;
 
+        public int TimesPerBrowser { get; set; } = 15;
+
         protected Config() { }
 
         public void Save()

@@ -1,28 +1,38 @@
 ﻿using KKBoxCD.Core.Manager;
 using System;
+using System.Threading;
 
 namespace KKBoxCD.Core
 {
     class Statics
     {
+        public static int ThreadSize = 0;
+
         public static int Perfect = 0;
 
         public static int Wrong = 0;
 
         public static int NotExist = 0;
 
-        public static void Show()
+        public static void Start()
         {
-            AccountManager manager = AccountManager.Instance;
-            int total = Perfect + Wrong + NotExist;
+            new Thread(() => {
+                while(true)
+                {
+                    AccountManager manager = AccountManager.Instance;
+                    int total = Perfect + Wrong + NotExist;
 
-
-            Console.Clear();
-            Console.WriteLine("Account: {0}", manager.Count());
-            Console.WriteLine("Total: {0}", total);
-            Console.WriteLine("Perfect: {0}", Perfect);
-            Console.WriteLine("Wrong: {0}", Wrong);
-            Console.WriteLine("NotExist: {0}", NotExist);
+                    //Console.Clear();
+                    Console.WriteLine("Thread Size: {0} | Account: {1} | Total: {2} | Perfect: {3} | Wrong: {4} | NotExist: {5}",
+                        ThreadSize,
+                        manager.Count(),
+                        total,
+                        Perfect,
+                        Wrong,
+                        NotExist);
+                    Thread.Sleep(1000);
+                }
+            }).Start();
         }
     }
 }
