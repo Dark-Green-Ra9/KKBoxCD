@@ -59,33 +59,5 @@ namespace KKBoxCD.Properties {
                 resourceCulture = value;
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to challenge = function() {
-        ///    const country_code = &quot;65&quot;;
-        ///    const territory_code = &quot;SG&quot;;
-        ///
-        ///    srp = new SRP();
-        ///    srp.init();
-        ///    srp.computeA();
-        ///    
-        ///    $(&quot;#username&quot;).val(window.__username);
-        ///    $(&quot;#ori_username&quot;).val(window.__username);
-        ///    $(&quot;#secret&quot;).val(window.__password);
-        ///    $(&quot;#remember&quot;).val(&quot;&quot;);
-        ///    $(&quot;#phone_country_code&quot;).val(country_code);
-        ///    $(&quot;#phone_territory_code&quot;).val(territory_code);
-        ///
-        ///    $.ajax({
-        ///        method: &quot;POST&quot;,
-        ///        url: &quot;/challenge&quot;,
-        ///        data: {
-        ///  [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string KKBoxInject {
-            get {
-                return ResourceManager.GetString("KKBoxInject", resourceCulture);
-            }
-        }
     }
 }

@@ -110,8 +110,8 @@ namespace KKBoxCD.Core.Support
                 {
                     return true;
                 }
-                await Task.Delay(3000);
-                timeout -= 3000;
+                await Task.Delay(1500);
+                timeout -= 1500;
             } while (timeout > 0);
 
             return false;
@@ -180,6 +180,19 @@ namespace KKBoxCD.Core.Support
             } while (timeout > 0);
 
             return false;
+        }
+
+        public async Task<bool> StopLoadingAsync()
+        {
+            try
+            {
+                await mPage.EvaluateExpressionAsync("window.stop()");
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public async Task<bool> SetInputValueAsync(string selector, string value)

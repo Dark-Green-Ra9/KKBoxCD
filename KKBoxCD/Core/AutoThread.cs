@@ -2,16 +2,12 @@
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using KKBoxCD.Core.Manager;
 using KKBoxCD.Core.Support;
 using KKBoxCD.Core.Utils;
-using KKBoxCD.Properties;
 using PuppeteerExtraSharp;
 using PuppeteerSharp;
-using RestSharp;
 
 namespace KKBoxCD.Core
 {
@@ -20,7 +16,6 @@ namespace KKBoxCD.Core
         private readonly Config mConfig;
         private readonly AccountManager mAccountManager;
         private readonly ProxyManager mProxyManager;
-        private readonly bool IsDebug = false;
 
         #region Properties Variable
 
@@ -59,7 +54,7 @@ namespace KKBoxCD.Core
 
         private void Log(string content)
         {
-            if (IsDebug)
+            if (mConfig.IsDebug)
             {
                 Console.WriteLine("[THREAD_{0}] {1}", ThreadID, content);
             }
@@ -83,23 +78,58 @@ namespace KKBoxCD.Core
                         break;
                     }
 
+                    Log(">> Kiểm tra lượng tài khoản");
+                    if (mAccountManager.IsEmpty())
+                    {
+                        Log("Đã hết Account");
+                        break;
+                    }
+
                     Log(">> Khởi tạo Browser và Page");
                     PuppeteerExtra extra = new PuppeteerExtra();
                     LaunchOptions options = new LaunchOptions()
                     {
-                        Headless = !IsDebug,
+                        Headless = !mConfig.IsDebug,
                         ExecutablePath = Consts.ChromeFile,
                         Args = new string[]
                         {
                             $"--proxy-server=\"{Proxy.Address}:{Proxy.Port}\"",
+                            $"--app=\"data:text/html,<title></title>\"",
+                            "--allow-cross-origin-auth-prompt",
                             "--disable-web-security",
-                            "--no-sandbox",
-                            "--disable-setuid-sandbox",
+                            "--disable-sync",
+                            "--disable-translate",
+                            "--disable-backgrounding-occluded-windows",
+                            "--disable-background-networking",
+                            "--disable-client-side-phishing-detection",
                             "--disable-dev-shm-usage",
-                            "--disable-accelerated-2d-canvas",
+                            "--disable-breakpad",
+                            "--disable-domain-reliability",
+                            "--disable-features=HardwareMediaKeyHandling,OmniboxUIExperimentHideSteadyStateUrlPathQueryAndRef,OmniboxUIExperimentHideSteadyStateUrlScheme,OmniboxUIExperimentHideSteadyStateUrlTrivialSubdomains,ShowManagedUi",
+                            "--disable-hang-monitor",
+                            "--disable-ipc-flooding-protection",
+                            "--disable-notifications",
+                            "--disable-offer-store-unmasked-wallet-cards",
+                            "--disable-popup-blocking",
+                            "--disable-print-preview",
+                            "--disable-prompt-on-repost",
+                            "--disable-remote-fonts",
+                            "--disable-default-apps",
+                            "--disable-image-loading",
+                            "--disable-speech-api",
+                            "--hide-scrollbars",
+                            "--ignore-certificate-errors",
+                            "--ignore-gpu-blacklist",
+                            "--metrics-recording-only",
+                            "--no-default-browser-check",
                             "--no-first-run",
+                            "--no-pings",
+                            "--no-sandbox",
                             "--no-zygote",
-                            "--disable-gpu"
+                            "--disable-gpu",
+                            "--password-store=basic",
+                            "--reset-variation-state",
+                            "--use-mock-keychain",
                         },
                     };
                     Browser = extra.LaunchAsync(options).Result;
@@ -110,48 +140,45 @@ namespace KKBoxCD.Core
                     Page.SetRequestInterceptionAsync(true).Wait();
                     Page.Request += OnRequest;
 
-                    int times = mConfig.TimesPerBrowser;
-                    while (times > 0 && !mAccountManager.IsEmpty())
+                    bool success = false;
+                    int loop = mConfig.TimesPerBrowser;
+                    while (loop > 0)
                     {
                         Log(">> Lấy Account");
                         Account = mAccountManager.Get();
                         if (Account == null)
                         {
                             Log("Đã hết Account");
-                            break;
+                            throw new Exception("Đã hết Account");
                         }
 
                         Log(">> Truy cập trang");
-                        bool success = PageCTL.GoToAsync("https://kkid.kkbox.com/login", "#login_header", new NavigationOptions
+                        if (!Page.Url.StartsWith("https://kkid.kkbox.com/login"))
                         {
-                            WaitUntil = new WaitUntilNavigation[]
+                            success = PageCTL.GoToAsync("https://kkid.kkbox.com/login", "#recaptcha", new NavigationOptions
                             {
-                                WaitUntilNavigation.DOMContentLoaded
-                            }
-                        }).Result;
-                        if (!success)
+                                Timeout = mConfig.PageTimeout,
+                                WaitUntil = new WaitUntilNavigation[]
+                                {
+                                    WaitUntilNavigation.DOMContentLoaded
+                                }
+                            }).Result;
+                            if (!success)
                         {
                             throw new Exception("Truy cập trang thất bại");
                         }
+                        }
 
                         Log(">> Đợi Recaptcha sẵn sàng");
-                        Thread.Sleep(250);
-                        success = WaitForRecaptcha();
+                        success = WaitRecaptcha(mConfig.PageTimeout);
                         if (!success)
                         {
-                            throw new Exception("Đợi Recaptcha sẵn sàng thất bại");
+                            throw new Exception("Đợi Recaptcha thất bại");
                         }
 
-                        Log(">> Tiêm trích trang");
+                        Log(">> Dừng tải trang");
                         Thread.Sleep(250);
-                        try
-                        {
-                            Page.EvaluateExpressionAsync(Resources.KKBoxInject).Wait();
-                        }
-                        catch
-                        {
-                            throw new Exception("Tiêm trích trang thất bại");
-                        }
+                        PageCTL.StopLoadingAsync().Wait();
 
                         Log(">> Gửi lệnh đăng nhập");
                         Thread.Sleep(250);
@@ -161,7 +188,6 @@ namespace KKBoxCD.Core
                             (username, password) => {
                                 window.__username = username;
                                 window.__password = password;
-                                document.querySelector('#login_header').remove();
                                 challenge();
                             }", Account.Email, Account.Password).Wait();
                         }
@@ -170,63 +196,72 @@ namespace KKBoxCD.Core
                             throw new Exception("Gửi lệnh đăng nhập thất bại");
                         }
 
-                        Log(">> Đợi kết quả đăng nhập");
+                        Log(">> Đợi chuyển hướng");
                         success = PageCTL.WaitForExistAnyAsync(new string[]
                         {
-                            "#toast-content",
                             "#logout",
-                            "#login_header"
-                        }, 10000).Result;
+                            "#toast-content",
+                            ".server_prompt"
+                        }, mConfig.PageTimeout).Result;
                         if (!success)
                         {
                             throw new Exception("Đợi kết quả đăng nhập thất bại");
                         }
 
-                        Log(">> Kiểm tra kết quả đăng nhập");
+                        Log(">> Kiểm tra đăng nhập");
+                        Thread.Sleep(250);
                         if (PageCTL.ExistAsync("#logout").Result)
                         {
-                            Log(">> Tiến hành lấy trạng thái tài khoản");
+                            Log(">> Lấy trạng thái");
                             Thread.Sleep(250);
                             try
                             {
                                 Account.Plan = Page.EvaluateFunctionAsync<string>(@"
-                            () => {
-                                try {
-                                    const xhr = new XMLHttpRequest();
-                                    xhr.open('GET', '/plan', false);
-                                    xhr.send();
-                                    document.body.outerHTML = xhr.responseText;
+                                () => {
+                                    try {
+                                        const xhr = new XMLHttpRequest();
+                                        xhr.open('GET', '/plan', false);
+                                        xhr.send();
+                                        document.body.outerHTML = xhr.responseText;
 
-                                    const card = document.querySelector('.plan_card');
-                                    const data = card.innerText.split('\n');
+                                        const no_plan = document.querySelector('.no_plan');
+                                        if (no_plan != null) {
+                                            return 'No Plan';
+                                        }
 
-                                    var plan = '';
-                                    if (data.length > 0) {
-                                        plan += data[0] + ' | ';
-                                    }
-                                    if (data.length > 1) {
-                                        plan += data[1] + ' | ';
-                                    }
-                                    if (data.length > 4) {
-                                        plan += data[4] + ' | ';
-                                    }
-                                    if (data.length > 12) {
-                                        plan += data[12];
-                                    }
-                                    return plan;
+                                        const card = document.querySelector('.plan_card');
+                                        const data = card.innerText.split('\n');
+
+                                        var plan = '';
+                                        if (data.length > 0) {
+                                            plan += data[0] + ' | ';
+                                        }
+                                        if (data.length > 1) {
+                                            plan += data[1] + ' | ';
+                                        }
+                                        if (data.length > 4) {
+                                            plan += data[4] + ' | ';
+                                        }
+                                        if (data.length > 12) {
+                                            plan += data[12];
+                                        }
+                                        return plan;
                                 
-                                } catch {
-                                    return '';
-                                }
-                            }").Result;
+                                    } catch {
+                                        return 'Get Failed';
+                                    }
+                                }").Result;
                             }
-                            catch { }
+                            catch
+                            {
+                                Account.Plan = "Get Failed";
+                            }
 
                             Log(">> Ghi kết quả");
-                            Account.Status = AccountStatus.Perfect.ToString();
+                            Account.Status = AccountStatus.Perfect;
                             mAccountManager.Write(Account);
                             Account = null;
-                            Statics.Perfect++;
+                            States.Perfect++;
                             break;
                         }
                         else if (PageCTL.ExistAsync("#toast-content").Result)
@@ -236,7 +271,6 @@ namespace KKBoxCD.Core
                             try
                             {
                                 error_content = PageCTL.GetElementInnerText("#toast-content").Result;
-
                             }
                             catch
                             {
@@ -247,38 +281,37 @@ namespace KKBoxCD.Core
                             if (error_content.Equals("not_verified"))
                             {
                                 Log(">> Ghi kết quả");
-                                Account.Status = AccountStatus.NotExist.ToString();
+                                Account.Status = AccountStatus.NotExist;
                                 mAccountManager.Write(Account);
                                 Account = null;
-                                Statics.NotExist++;
+                                States.NotExist++;
                             }
                             else if (error_content.Equals("login_failed"))
                             {
                                 Log(">> Ghi kết quả");
-                                Account.Status = AccountStatus.Wrong.ToString();
+                                Account.Status = AccountStatus.Wrong;
                                 mAccountManager.Write(Account);
                                 Account = null;
-                                Statics.Wrong++;
+                                States.Wrong++;
                             }
                             else
                             {
                                 throw new Exception("Phân loại lỗi ngoại lệ");
                             }
                         }
-                        else if (PageCTL.ExistAsync("#login_header").Result)
+                        else if (PageCTL.ExistAsync(".server_prompt").Result)
                         {
                             Log(">> Ghi kết quả");
-                            Account.Status = AccountStatus.Wrong.ToString();
+                            Account.Status = AccountStatus.LoginFail;
                             mAccountManager.Write(Account);
                             Account = null;
-                            Statics.Wrong++;
+                            States.LoginFail++;
                         }
-                        times--;
-                    }
-
-                    if (mAccountManager.IsEmpty())
-                    {
-                        break;
+                        else
+                        {
+                            throw new Exception("Kiểm tra đăng nhập thất bại");
+                        }
+                        loop--;
                     }
                 }
                 catch (Exception ex)
@@ -324,25 +357,31 @@ namespace KKBoxCD.Core
             }
         }
 
-        private bool WaitForRecaptcha()
+        private bool WaitRecaptcha(int times = 15000)
         {
-            int times = 30;
-            while(times > 0)
+            while (times > 0)
             {
                 try
                 {
                     bool success = Page.EvaluateFunctionAsync<bool>(@"
                     () => {
-                        return document.querySelector('#recaptcha').value.length > 0;
+                        try {
+                            return document.querySelector('#recaptcha').value.length > 0;
+                        }
+                        catch {
+                            return false;
+                        }
                     }").Result;
+
                     if (success)
                     {
                         return true;
                     }
                 }
-                catch (Exception e) { Console.WriteLine(e); }
+                catch { }
+
+                times -= 1000;
                 Thread.Sleep(1000);
-                times--;
             }
             return false;
         }
@@ -351,23 +390,40 @@ namespace KKBoxCD.Core
         {
             Request req = e.Request;
             ResourceType type = req.ResourceType;
-            if (type == ResourceType.Image || type == ResourceType.Img || type == ResourceType.Font)
+            ResourceType[] blocks = new ResourceType[]
+            {
+                ResourceType.Image,
+                ResourceType.Img,
+                ResourceType.Font,
+                ResourceType.StyleSheet
+            };
+
+            if (blocks.Contains(type))
             {
                 await req.RespondAsync(new ResponseData
                 {
-                    ContentType = "image/png",
+                    ContentType = string.Empty,
                     BodyData = new byte[0],
                     Status = HttpStatusCode.OK,
                 });
             }
-            else if (type == ResourceType.StyleSheet)
+            else if (type == ResourceType.Script)
             {
-                await req.RespondAsync(new ResponseData
+                string name = Path.GetFileName(req.Url);
+                byte[] bytes = SourceManager.Get(name);
+                if (bytes != null)
                 {
-                    ContentType = "text/css",
-                    Body = "",
-                    Status = HttpStatusCode.OK,
-                });
+                    await req.RespondAsync(new ResponseData
+                    {
+                        ContentType = "text/javascript; charset=utf-8",
+                        BodyData = bytes,
+                        Status = HttpStatusCode.OK,
+                    });
+                }
+                else
+                {
+                    await req.ContinueAsync();
+                }
             }
             else
             {

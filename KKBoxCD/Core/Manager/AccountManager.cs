@@ -77,25 +77,14 @@ namespace KKBoxCD.Core.Manager
         {
             try
             {
-                File.AppendAllText(Consts.RanFile, string.Concat(account.Raw, Environment.NewLine));
-
-                string line = string.Concat(account.ToString(), Environment.NewLine);
                 if (!Directory.Exists(Consts.OutputDir))
                 {
                     Directory.CreateDirectory(Consts.OutputDir);
                 }
-                if (account.Status.Equals(AccountStatus.Perfect.ToString()))
-                {
-                    File.AppendAllText(Consts.PerfectFile, line);
-                }
-                if (account.Status.Equals(AccountStatus.Wrong.ToString()))
-                {
-                    File.AppendAllText(Consts.WrongFile, line);
-                }
-                if (account.Status.Equals(AccountStatus.NotExist.ToString()))
-                {
-                    File.AppendAllText(Consts.NotExistFile, line);
-                }
+                string line = $"{account}{Environment.NewLine}";
+                string file = Path.Combine(Consts.OutputDir, $"{account.Status}.txt");
+                File.AppendAllText(Consts.RanFile, $"{account.Raw}{Environment.NewLine}");
+                File.AppendAllText(file, line);
             }
             catch { }
         }
@@ -121,15 +110,15 @@ namespace KKBoxCD.Core.Manager
 
     public class Account
     {
-        public string Raw { get; private set; }
+        public string Raw { get; private set; } = string.Empty;
 
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
-        public string Password { set; get; }
+        public string Password { set; get; } = string.Empty;
 
-        public string Status { set; get; }
+        public AccountStatus Status { set; get; } = AccountStatus.Null;
 
-        public string Plan { set; get; }
+        public string Plan { set; get; } = string.Empty;
 
         public Account(string raw)
         {
@@ -151,14 +140,16 @@ namespace KKBoxCD.Core.Manager
 
         public override string ToString()
         {
-            return string.Concat(Email, ":", Password, ":", Status, ":", Plan);
+            return $"{Email}:{Password}:{Status}:{Plan}";
         }
     }
 
     public enum AccountStatus
     {
+        Null,
         Perfect,
         Wrong,
-        NotExist
+        NotExist,
+        LoginFail,
     }
 }

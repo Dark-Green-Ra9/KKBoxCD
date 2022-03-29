@@ -35,7 +35,11 @@ namespace KKBoxCD.Core.Utils
 
         public int ThreadSize { get; set; } = 1;
 
-        public int TimesPerBrowser { get; set; } = 15;
+        public int PageTimeout { get; set; } = 15000;
+
+        public int TimesPerBrowser { get; set; } = 20;
+
+        public bool IsDebug { get; set; } = false;
 
         protected Config() { }
 
@@ -43,7 +47,7 @@ namespace KKBoxCD.Core.Utils
         {
             try
             {
-                File.WriteAllText(Consts.ConfigFile, JsonConvert.SerializeObject(this));
+                File.WriteAllText(Consts.ConfigFile, JsonConvert.SerializeObject(this, Formatting.Indented));
             }
             catch { }
         }

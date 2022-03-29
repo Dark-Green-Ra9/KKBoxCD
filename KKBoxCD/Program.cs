@@ -11,12 +11,14 @@ namespace KKBoxCD
         public static void Main()
         {
             Console.OutputEncoding = Encoding.UTF8;
-            Statics.Start();
+
+            Addons.CloseChrome();
+            States.Start();
 
             Config config = Config.Instance;
             for (int i = 0; i < config.ThreadSize; i++)
             {
-                Statics.ThreadSize++;
+                States.ThreadSize++;
                 new AutoThread(i).Start();
                 Thread.Sleep(250);
             }
