@@ -37,9 +37,11 @@ namespace KKBoxCD.Core.Utils
 
         public int PageTimeout { get; set; } = 15000;
 
-        public int TimesPerBrowser { get; set; } = 20;
+        public int TimesPerBrowser { get; set; } = 10;
 
         public bool IsDebug { get; set; } = false;
+
+        public bool IsSocks { get; set; } = false;
 
         protected Config() { }
 

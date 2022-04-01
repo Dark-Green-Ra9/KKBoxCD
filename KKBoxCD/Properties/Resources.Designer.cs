@@ -59,5 +59,190 @@ namespace KKBoxCD.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to var lookup = &apos;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_&apos;;
+        ///(function (exports) {
+        ///    &apos;use strict&apos;
+        ///    var Arr = (typeof Uint8Array !== &apos;undefined&apos;) ? Uint8Array : Array
+        ///    var PLUS = &apos;+&apos;.charCodeAt(0)
+        ///    var SLASH = &apos;/&apos;.charCodeAt(0)
+        ///    var NUMBER = &apos;0&apos;.charCodeAt(0)
+        ///    var LOWER = &apos;a&apos;.charCodeAt(0)
+        ///    var UPPER = &apos;A&apos;.charCodeAt(0)
+        ///    var PLUS_URL_SAFE = &apos;-&apos;.charCodeAt(0)
+        ///    var SLASH_URL_SAFE = &apos;_&apos;.charCodeAt(0)
+        ///
+        ///    function decode(elt) {
+        ///        var code = elt.charCodeAt(0)
+        ///  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string base64 {
+            get {
+                return ResourceManager.GetString("base64", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to (function () {
+        ///    function u(b) {
+        ///        var c, m, d = &quot;&quot;,
+        ///            a = -1,
+        ///            l;
+        ///        if (b &amp;&amp; b.length)
+        ///            for (l = b.length;
+        ///                (a += 1) &lt; l;) c = b.charCodeAt(a), m = a + 1 &lt; l ? b.charCodeAt(a + 1) : 0, 55296 &lt;= c &amp;&amp; (56319 &gt;= c &amp;&amp; 56320 &lt;= m &amp;&amp; 57343 &gt;= m) &amp;&amp; (c = 65536 + ((c &amp; 1023) &lt;&lt; 10) + (m &amp; 1023), a += 1), 127 &gt;= c ? d += String.fromCharCode(c) : 2047 &gt;= c ? d += String.fromCharCode(192 | c &gt;&gt;&gt; 6 &amp; 31, 128 | c &amp; 63) : 65535 &gt;= c ? d += String.fromCh [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string hashes_min {
+            get {
+                return ResourceManager.GetString("hashes_min", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to var dbits;
+        ///var canary = 0xdeadbeefcafe;
+        ///var j_lm = ((canary &amp; 0xffffff) == 0xefcafe);
+        ///
+        ///function BigInteger(a, b, c) {
+        ///    if (a != null)
+        ///        if (&quot;number&quot; == typeof a) this.fromNumber(a, b, c);
+        ///        else if (b == null &amp;&amp; &quot;string&quot; != typeof a) this.fromString(a, 256);
+        ///        else this.fromString(a, b);
+        ///}
+        ///
+        ///function nbi() {
+        ///    return new BigInteger(null);
+        ///}
+        ///
+        ///function am1(i, x, w, j, c, n) {
+        ///    while (--n &gt;= 0) {
+        ///        var v = x * this[i++] + w[j] + c;
+        ///        c = Math.floor(v / 0x4000000);
+        ///        w [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string jsbn {
+            get {
+                return ResourceManager.GetString("jsbn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to function bnClone() {
+        ///    var r = nbi();
+        ///    this.copyTo(r);
+        ///    return r;
+        ///}
+        ///
+        ///function bnIntValue() {
+        ///    if (this.s &lt; 0) {
+        ///        if (this.t == 1) return this[0] - this.DV;
+        ///        else if (this.t == 0) return -1;
+        ///    } else if (this.t == 1) return this[0];
+        ///    else if (this.t == 0) return 0;
+        ///    return ((this[1] &amp; ((1 &lt;&lt; (32 - this.DB)) - 1)) &lt;&lt; this.DB) | this[0];
+        ///}
+        ///
+        ///function bnByteValue() {
+        ///    return (this.t == 0) ? this.s : (this[0] &lt;&lt; 24) &gt;&gt; 24;
+        ///}
+        ///
+        ///function bnShortValue() {
+        ///    return (this.t == 0) ? [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string jsbn2 {
+            get {
+                return ResourceManager.GetString("jsbn2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;html&gt;
+        ///
+        ///&lt;head&gt;
+        ///&lt;/head&gt;
+        ///
+        ///&lt;body&gt;
+        ///    &lt;script src=&apos;hashes.min.js&apos;&gt;&lt;/script&gt;
+        ///    &lt;script src=&apos;jsbn.js&apos;&gt;&lt;/script&gt;
+        ///    &lt;script src=&apos;jsbn2.js&apos;&gt;&lt;/script&gt;
+        ///    &lt;script src=&apos;scrypt.js&apos;&gt;&lt;/script&gt;
+        ///    &lt;script src=&apos;srp.js&apos;&gt;&lt;/script&gt;
+        ///    &lt;script src=&quot;base64.js&quot;&gt;&lt;/script&gt;
+        ///
+        ///    &lt;form id=&quot;form&quot; method=&quot;post&quot; action=&quot;https://kkid.kkbox.com/login&quot;&gt;
+        ///        &lt;input id=&quot;referer&quot; name=&quot;referer&quot; placeholder=&quot;referer&quot; value=&quot;https://mykkid.kkbox.com/&quot;&gt; &lt;br /&gt;
+        ///        &lt;input id=&quot;recaptcha&quot; name=&quot;recaptcha&quot; placeholder= [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string login {
+            get {
+                return ResourceManager.GetString("login", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to var scrypt_module_factory = (function (requested_total_memory) {
+        ///    var Module = {
+        ///        TOTAL_MEMORY: (requested_total_memory || 33554432)
+        ///    };
+        ///    var scrypt_raw = Module;
+        ///
+        ///    function g(a) {
+        ///        throw a;
+        ///    }
+        ///    var k = void 0,
+        ///        l = !0,
+        ///        m = null,
+        ///        p = !1;
+        ///
+        ///    function aa() {
+        ///        return function () { }
+        ///    }
+        ///    var q, s;
+        ///    s || (s = eval(&quot;(function() { try { return Module || {} } catch(e) { return {} } })()&quot;));
+        ///    var ba = {},
+        ///        t;
+        ///    for (t in s) {
+        ///       [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string scrypt {
+            get {
+                return ResourceManager.GetString("scrypt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to if (typeof module !== &apos;undefined&apos;) {
+        ///    module.exports = SRP;
+        ///}
+        ///
+        ///function SRP() {
+        ///    this.N = null;
+        ///    this.g = null;
+        ///    this.a = null;
+        ///    this.b = null;
+        ///    this.A = null;
+        ///    this.B = null;
+        ///    this.clientK = null;
+        ///    this.serverK = null;
+        ///    this.M1 = null;
+        ///    this.M2 = null;
+        ///    this.k = null;
+        ///    this.I = null;
+        ///    this.p = null;
+        ///    this.x = null;
+        ///    this.s = null;
+        ///    this.v = null;
+        ///}
+        ///SRP.prototype.init = function (g) {
+        ///    switch (g) {
+        ///        case &quot;G3072&quot;:
+        ///            this.N = new BigIntege [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string srp {
+            get {
+                return ResourceManager.GetString("srp", resourceCulture);
+            }
+        }
     }
 }

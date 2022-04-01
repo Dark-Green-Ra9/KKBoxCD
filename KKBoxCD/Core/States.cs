@@ -23,6 +23,8 @@ namespace KKBoxCD.Core
 
         private static DateTime StartTime = DateTime.MinValue;
 
+        private static int LastTotal = 0;
+
         public static void Start()
         {
             StartTime = DateTime.Now;
@@ -42,12 +44,17 @@ namespace KKBoxCD.Core
                     }
                     else
                     {
+                        float speed = (total - LastTotal) / 1.5f;
+
                         Console.Clear();
-                        Console.WriteLine("Runtime: {0}d:{1}h:{2}m{3}s\nThread Size: {4}\nAccount: {5}\nTotal: {6}\nPerfect: {7}\nWrong: {8}\nNotExist: {9}\nLoginFail: {10}",
+                        Console.WriteLine("Runtime: {0}d:{1}h:{2}m{3}s\nThread Size: {4}\nAccount: {5}\nTotal: {6}\nPerfect: {7}\nWrong: {8}\nNotExist: {9}\nLoginFail: {10}\nSpeed: {11}/s",
                             time.Days, time.Hours, time.Minutes, time.Seconds,
                             ThreadSize, mManager.Count(), total,
-                            Perfect, Wrong, NotExist, LoginFail);
+                            Perfect, Wrong, NotExist, LoginFail,
+                            speed);
                     }
+
+                    LastTotal = total;
                     Thread.Sleep(1500);
                 }
             }).Start();

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -7,6 +9,7 @@ using KKBoxCD.Core.Manager;
 using KKBoxCD.Core.Support;
 using KKBoxCD.Core.Utils;
 using PuppeteerExtraSharp;
+using PuppeteerExtraSharp.Plugins.ExtraStealth;
 using PuppeteerSharp;
 
 namespace KKBoxCD.Core
@@ -85,54 +88,65 @@ namespace KKBoxCD.Core
                         break;
                     }
 
+                    Log(">> Khởi tạo tham số Browser");
+                    List<string> args = new List<string>()
+                    {
+                        $"--app=\"data:text/html,<title></title>\"",
+                        "--allow-cross-origin-auth-prompt",
+                        "--disable-web-security",
+                        "--disable-sync",
+                        "--disable-translate",
+                        "--disable-backgrounding-occluded-windows",
+                        "--disable-background-networking",
+                        "--disable-client-side-phishing-detection",
+                        "--disable-dev-shm-usage",
+                        "--disable-breakpad",
+                        "--disable-domain-reliability",
+                        "--disable-features=HardwareMediaKeyHandling,OmniboxUIExperimentHideSteadyStateUrlPathQueryAndRef,OmniboxUIExperimentHideSteadyStateUrlScheme,OmniboxUIExperimentHideSteadyStateUrlTrivialSubdomains,ShowManagedUi",
+                        "--disable-hang-monitor",
+                        "--disable-ipc-flooding-protection",
+                        "--disable-notifications",
+                        "--disable-offer-store-unmasked-wallet-cards",
+                        "--disable-popup-blocking",
+                        "--disable-print-preview",
+                        "--disable-prompt-on-repost",
+                        "--disable-remote-fonts",
+                        "--disable-default-apps",
+                        "--disable-image-loading",
+                        "--disable-speech-api",
+                        "--hide-scrollbars",
+                        "--ignore-certificate-errors",
+                        "--ignore-gpu-blacklist",
+                        "--metrics-recording-only",
+                        "--no-default-browser-check",
+                        "--no-first-run",
+                        "--no-pings",
+                        "--no-sandbox",
+                        "--no-zygote",
+                        "--disable-gpu",
+                        "--password-store=basic",
+                        "--reset-variation-state",
+                        "--use-mock-keychain",
+                    };
+                    if (mConfig.IsSocks)
+                    {
+                        args.Add($"--proxy-server=\"socks5://{Proxy.Address}:{Proxy.Port}\"");
+                        args.Add($"--host-resolver-rules=\"MAP * 0.0.0.0, EXCLUDE {Proxy.Address}\"");
+                    }
+                    else
+                    {
+                        args.Add($"--proxy-server=\"{Proxy.Address}:{Proxy.Port}\"");
+                    }
+
                     Log(">> Khởi tạo Browser và Page");
                     PuppeteerExtra extra = new PuppeteerExtra();
                     LaunchOptions options = new LaunchOptions()
                     {
                         Headless = !mConfig.IsDebug,
                         ExecutablePath = Consts.ChromeFile,
-                        Args = new string[]
-                        {
-                            $"--proxy-server=\"{Proxy.Address}:{Proxy.Port}\"",
-                            $"--app=\"data:text/html,<title></title>\"",
-                            "--allow-cross-origin-auth-prompt",
-                            "--disable-web-security",
-                            "--disable-sync",
-                            "--disable-translate",
-                            "--disable-backgrounding-occluded-windows",
-                            "--disable-background-networking",
-                            "--disable-client-side-phishing-detection",
-                            "--disable-dev-shm-usage",
-                            "--disable-breakpad",
-                            "--disable-domain-reliability",
-                            "--disable-features=HardwareMediaKeyHandling,OmniboxUIExperimentHideSteadyStateUrlPathQueryAndRef,OmniboxUIExperimentHideSteadyStateUrlScheme,OmniboxUIExperimentHideSteadyStateUrlTrivialSubdomains,ShowManagedUi",
-                            "--disable-hang-monitor",
-                            "--disable-ipc-flooding-protection",
-                            "--disable-notifications",
-                            "--disable-offer-store-unmasked-wallet-cards",
-                            "--disable-popup-blocking",
-                            "--disable-print-preview",
-                            "--disable-prompt-on-repost",
-                            "--disable-remote-fonts",
-                            "--disable-default-apps",
-                            "--disable-image-loading",
-                            "--disable-speech-api",
-                            "--hide-scrollbars",
-                            "--ignore-certificate-errors",
-                            "--ignore-gpu-blacklist",
-                            "--metrics-recording-only",
-                            "--no-default-browser-check",
-                            "--no-first-run",
-                            "--no-pings",
-                            "--no-sandbox",
-                            "--no-zygote",
-                            "--disable-gpu",
-                            "--password-store=basic",
-                            "--reset-variation-state",
-                            "--use-mock-keychain",
-                        },
+                        Args = args.ToArray()
                     };
-                    Browser = extra.LaunchAsync(options).Result;
+                    Browser = extra.Use(new StealthPlugin()).LaunchAsync(options).Result;
                     Page = Browser.PagesAsync().Result[0];
                     PageCTL = new PageCTL(Page);
 
@@ -152,6 +166,9 @@ namespace KKBoxCD.Core
                             throw new Exception("Đã hết Account");
                         }
 
+                        Stopwatch watch = new Stopwatch();
+                        watch.Start();
+
                         Log(">> Truy cập trang");
                         if (!Page.Url.StartsWith("https://kkid.kkbox.com/login"))
                         {
@@ -164,9 +181,9 @@ namespace KKBoxCD.Core
                                 }
                             }).Result;
                             if (!success)
-                        {
-                            throw new Exception("Truy cập trang thất bại");
-                        }
+                            {
+                                throw new Exception("Truy cập trang thất bại");
+                            }
                         }
 
                         Log(">> Đợi Recaptcha sẵn sàng");
@@ -180,6 +197,10 @@ namespace KKBoxCD.Core
                         Thread.Sleep(250);
                         PageCTL.StopLoadingAsync().Wait();
 
+                        watch.Stop();
+                        Console.WriteLine("Ready: {0}ms", watch.ElapsedMilliseconds);
+                        //Thread.Sleep(99999999);
+
                         Log(">> Gửi lệnh đăng nhập");
                         Thread.Sleep(250);
                         try
@@ -188,6 +209,12 @@ namespace KKBoxCD.Core
                             (username, password) => {
                                 window.__username = username;
                                 window.__password = password;
+
+                                const toast_content = document.querySelector('#toast-content');
+                                if (toast_content != null) {
+                                    toast_content.remove();
+                                }
+
                                 challenge();
                             }", Account.Email, Account.Password).Wait();
                         }
