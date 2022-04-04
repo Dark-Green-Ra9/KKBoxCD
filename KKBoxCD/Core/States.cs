@@ -15,6 +15,8 @@ namespace KKBoxCD.Core
 
         public static int NotFound = 0;
 
+        public static int SRPUnsupported = 0;
+
         public static int LoginFailed = 0;
 
         public static int RecaptchaFailed = 0;
@@ -35,7 +37,7 @@ namespace KKBoxCD.Core
                 while (true)
                 {
                     //int total = Perfect + NotFound + LoginFailed + RecaptchaFailed;
-                    int total = Perfect + Other + NotFound;
+                    int total = Perfect + Other + NotFound + SRPUnsupported;
                     TimeSpan time = DateTime.Now.Subtract(StartTime);
 
                     if (mConfig.IsDebug)
@@ -45,10 +47,10 @@ namespace KKBoxCD.Core
                         //    ThreadSize, mManager.Count(), total,
                         //    Perfect, NotFound, LoginFailed, RecaptchaFailed);
 
-                        Console.WriteLine("Runtime: {0}d:{1}h:{2}m{3}s | Thread Size: {4} | Account: {5} | Total: {6} | Perfect: {7} | NotFound: {8} | Other: {9}",
+                        Console.WriteLine("Runtime: {0}d:{1}h:{2}m{3}s | Thread Size: {4} | Account: {5} | Total: {6} | Perfect: {7} | NotFound: {8} | SRPUnsupported: {9} | Other: {10}",
                             time.Days, time.Hours, time.Minutes, time.Seconds,
                             ThreadSize, mManager.Count(), total,
-                            Perfect, NotFound, Other);
+                            Perfect, NotFound, SRPUnsupported, Other);
                     }
                     else
                     {
@@ -61,10 +63,10 @@ namespace KKBoxCD.Core
                         //    Perfect, NotFound, LoginFailed, RecaptchaFailed,
                         //    speed);
 
-                        Console.WriteLine("Runtime: {0}d:{1}h:{2}m{3}s\nThread Size: {4}\nAccount: {5}\nTotal: {6}\nPerfect: {7}\nNotFound: {8}\nOther: {9}\nSpeed: {10}/s",
+                        Console.WriteLine("Runtime: {0}d:{1}h:{2}m{3}s\nThread Size: {4}\nAccount: {5}\nTotal: {6}\nPerfect: {7}\nNotFound: {8}\nSRPUnsupported: {9}\nOther: {10}\nSpeed: {11}/s",
                             time.Days, time.Hours, time.Minutes, time.Seconds,
                             ThreadSize, mManager.Count(), total,
-                            Perfect, NotFound, Other, speed);
+                            Perfect, NotFound, SRPUnsupported, Other, speed);
                     }
 
                     LastTotal = total;

@@ -164,8 +164,8 @@ namespace KKBoxCD.Core
                         }
                         else if (status_code.Equals("403"))
                         {
-                            States.NotFound++;
-                            Account.Status = AccountStatus.NotFound;
+                            States.SRPUnsupported++;
+                            Account.Status = AccountStatus.SRPUnsupported;
                             Account.Data = error;
                             mAccountManager.Write(Account);
                             Account = null;

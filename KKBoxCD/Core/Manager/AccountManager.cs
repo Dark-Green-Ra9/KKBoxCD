@@ -150,6 +150,7 @@ namespace KKBoxCD.Core.Manager
         Other,
         Perfect,
         NotFound,
+        SRPUnsupported,
         LoginFailed,
         RecaptchaFailed
     }
