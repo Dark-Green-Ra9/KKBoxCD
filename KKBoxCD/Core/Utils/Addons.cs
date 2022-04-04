@@ -39,5 +39,12 @@ namespace KKBoxCD.Core.Utils
                 }
             }
         }
+
+        public static string RandomUserAgent()
+        {
+            Random rand = new Random();
+            string chrome_ver = $"{rand.Next(89, 100)}.0.{rand.Next(4389, 4778)}.{rand.Next(93, 212)}";
+            return $"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{chrome_ver} Safari/537.36";
+        }
     }
 }

@@ -1,5 +1,4 @@
 ﻿
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -10,27 +9,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
 
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+    <!--<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>-->
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>-->
+    <!--<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
             integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-            crossorigin="anonymous"></script>
+            crossorigin="anonymous"></script>-->
 
-    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
-    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet">
+    <!--<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>-->
+    <!--<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">-->
+    <!--<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet">-->
 
-    <script src="https://unpkg.com/material-components-web@v5.0.0/dist/material-components-web.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/material-components-web@v5.0.0/dist/material-components-web.min.css">
+    <!--<script src="https://unpkg.com/material-components-web@v5.0.0/dist/material-components-web.min.js"></script>-->
+    <!--<link rel="stylesheet" href="https://unpkg.com/material-components-web@v5.0.0/dist/material-components-web.min.css">-->
 
-    <script src="/static/js/intlTelInput.min.js"></script>
-    <link href="/static/css/intlTelInput.min.css" rel="stylesheet" crossorigin="anonymous">
+    <!--<script src="/static/js/intlTelInput.min.js"></script>-->
+    <!--<link href="/static/css/intlTelInput.min.css" rel="stylesheet" crossorigin="anonymous">-->
 
-    <link href="/static/css/account-style.css" rel="stylesheet" crossorigin="anonymous">
-    <link href="/static/css/global-font.css" rel="stylesheet" crossorigin="anonymous">
-    <link href="/static/css/style.css" rel="stylesheet" crossorigin="anonymous">
+    <!--<link href="/static/css/account-style.css" rel="stylesheet" crossorigin="anonymous">-->
+    <!--<link href="/static/css/global-font.css" rel="stylesheet" crossorigin="anonymous">-->
+    <!--<link href="/static/css/style.css" rel="stylesheet" crossorigin="anonymous">-->
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js"></script>
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js"></script>-->
 
     <script>
         Lang = "vi";
@@ -42,7 +41,7 @@
     </script>
 
     <script>
-    (function (w, d, s, l, i) {
+        (function (w, d, s, l, i) {
             w[l] = w[l] || []; w[l].push({
                 'gtm.start':
                     new Date().getTime(), event: 'gtm.js'
@@ -56,8 +55,8 @@
 <body id="page-login">
 
     <noscript>
-        <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5PKLBKX"
-                height="0" width="0" style="display:none;visibility:hidden"></iframe>
+        <!--<iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5PKLBKX"
+                height="0" width="0" style="display:none;visibility:hidden"></iframe>-->
     </noscript>
 
     <div id="wrapper">
@@ -70,12 +69,12 @@
         <div class="container">
 
             <script src='https://www.google.com/recaptcha/api.js?render=6LcuGcoUAAAAAB8E-zI7hoiQ_fcudMnk9YVZtW4m'></script>
-            <script src='/static/js/hashes.min.js'></script>
-            <script src='/static/js/jsbn.js'></script>
-            <script src='/static/js/jsbn2.js'></script>
-            <script src='/static/js/scrypt.js'></script>
-            <script src='/static/js/srp.js'></script>
-            <script type="text/javascript" src="/static/js/base64.js"></script>
+            <!--<script src='/static/js/hashes.min.js'></script>-->
+            <!--<script src='/static/js/jsbn.js'></script>-->
+            <!--<script src='/static/js/jsbn2.js'></script>-->
+            <!--<script src='/static/js/scrypt.js'></script>-->
+            <!--<script src='/static/js/srp.js'></script>-->
+            <!--<script type="text/javascript" src="/static/js/base64.js"></script>-->
             <!--<script src="/static/js/myfriend.js"></script>-->
 
             <div class="row">
@@ -94,7 +93,7 @@
                                            placeholder="Email or mobile number"
                                            type="text" />
                                     <span class="mdc-floating-label" id="username-label">Account</span>
-                                    <img class="clear_icon" src="/static/img/ic-clear.svg" alt="clear icon" />
+                                    <!--<img class="clear_icon" src="/static/img/ic-clear.svg" alt="clear icon" />-->
                                     <div class="mdc-line-ripple"></div>
                                 </label>
                             </div>
@@ -151,12 +150,12 @@
                     <div class="bottom_block">
                         <p class="or_hr">or</p>
                         <a id="signup_url" class="btn btn-block btn-default btn-primary" href="/signup">Register</a>
-                        <img class="kkbox_group_logo" src="/static/img/KKCOMPANY-logo-Black.png" height="30px" alt="KKCompany" />
+                        <!--<img class="kkbox_group_logo" src="/static/img/KKCOMPANY-logo-Black.png" height="30px" alt="KKCompany" />-->
                     </div>
 
                     <div class="dropdown lang-selector">
                         <button id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            English<img class="ic-dropdown" src="/static/img/ic-dropdown.png" alt="dropdown icon">
+                            English<!--<img class="ic-dropdown" src="/static/img/ic-dropdown.png" alt="dropdown icon">-->
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="dLabel">
 
@@ -200,9 +199,9 @@
                 //    initialCountry: "VN",
                 //});
             </script>
-            <script type="text/javascript" src="/static/js/iti.js"></script>
-            <script type="text/javascript" src="/static/js/mdc.js"></script>
-            <script type="text/javascript" src="/static/js/page/login.js"></script>
+            <!--<script type="text/javascript" src="/static/js/iti.js"></script>-->
+            <!--<script type="text/javascript" src="/static/js/mdc.js"></script>-->
+            <!--<script type="text/javascript" src="/static/js/page/login.js"></script>-->
 
         </div>
     </div>

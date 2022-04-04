@@ -1,9 +1,6 @@
 ﻿using KKBoxCD.Core;
 using KKBoxCD.Core.Utils;
-using Newtonsoft.Json;
-using RestSharp;
 using System;
-using System.Net;
 using System.Text;
 using System.Threading;
 
@@ -18,8 +15,8 @@ namespace KKBoxCD
 
             Addons.CloseChrome();
             ChromeClient.Instance.Init();
-            RecaptchaClient.Instance.Init();
-            //States.Start();
+            //RecaptchaClient.Instance.Init();
+            States.Start();
 
             for (int i = 0; i < config.ThreadSize; i++)
             {
@@ -29,17 +26,6 @@ namespace KKBoxCD
             }
 
             Console.ReadKey();
-        }
-
-        private static void Demo()
-        {
-            RecaptchaClient client = RecaptchaClient.Instance;
-            client.Init();
-            Thread.Sleep(3000);
-            string token = client.GetToken();
-            Console.WriteLine(token);
-            token = client.GetToken();
-            Console.WriteLine(token);
         }
     }
 }

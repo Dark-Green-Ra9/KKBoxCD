@@ -116,9 +116,9 @@ namespace KKBoxCD.Core.Manager
 
         public string Password { set; get; } = string.Empty;
 
-        public AccountStatus Status { set; get; } = AccountStatus.Null;
+        public AccountStatus Status { set; get; } = AccountStatus.Empty;
 
-        public string Plan { set; get; } = string.Empty;
+        public string Data { set; get; } = string.Empty;
 
         public Account(string raw)
         {
@@ -140,18 +140,17 @@ namespace KKBoxCD.Core.Manager
 
         public override string ToString()
         {
-            return $"{Email}:{Password}:{Status}:{Plan}";
+            return $"{Email}:{Password}:{Status}:{Data}";
         }
     }
 
     public enum AccountStatus
     {
-        Null,
+        Empty,
+        Other,
         Perfect,
-        Wrong,
-        G2048,
-        NotExist,
-        LoginFail,
-        CaptchaFail
+        NotFound,
+        LoginFailed,
+        RecaptchaFailed
     }
 }

@@ -65,6 +65,180 @@ namespace KKBoxCD.Core
             while (true)
             {
                 Log(">> Khởi tạo biến gửi");
+                string phone_country_code = "65";
+                string phone_territory_code = "SG";
+                string username = "";
+
+                Log(">> Khởi tạo biến nháp");
+                RestRequest request;
+                RestResponse response;
+                dynamic data = null;
+
+                try
+                {
+                    Log(">> Lấy Proxy");
+                    Proxy = mProxyManager.Random();
+                    if (Proxy == null)
+                    {
+                        Log(">> Đã hết Proxy");
+                        break;
+                    }
+
+                    Log(">> Lấy Account");
+                    Account = mAccountManager.Get();
+                    if (Account == null)
+                    {
+                        Log(">> Đã hết Account");
+                        break;
+                    }
+                    username = Account.Email;
+
+                    Log(">> Khởi tạo RestClient");
+                    IWebProxy proxy;
+                    if (mConfig.IsSocks)
+                    {
+                        proxy = new HttpToSocks5Proxy(Proxy.Address, Proxy.Port);
+                    }
+                    else
+                    {
+                        proxy = new WebProxy(Proxy.Address, Proxy.Port);
+                    }
+                    if (!string.IsNullOrEmpty(Proxy.Username) && !string.IsNullOrEmpty(Proxy.Password))
+                    {
+                        proxy.Credentials = new NetworkCredential(Proxy.Username, Proxy.Password);
+                    }
+                    RestClient client = new RestClient(new RestClientOptions
+                    {
+                        Proxy = proxy,
+                        UserAgent = Addons.RandomUserAgent(),
+                        Timeout = 10000
+                    });
+
+                    Log(">> Khởi tạo SRP, tính A");
+                    string A;
+                    try
+                    {
+                        A = mChromeClient.Page.EvaluateFunctionAsync<string>(@"(name) => {
+                            RemoveSRP(name);
+                            const srp = GetSRP(name);
+                            srp.init();
+                            srp.computeA();
+                            return srp.A.toString(16);
+                        }", username).Result;
+                    }
+                    catch
+                    {
+                        throw new Exception("Khởi tạo SRP, tính A thất bại");
+                    }
+
+                    Log(">> Yêu cầu Challenge");
+                    try
+                    {
+                        request = new RestRequest("https://kkid.kkbox.com/challenge", Method.Post);
+                        request.AddParameter("username", username);
+                        request.AddParameter("phone_country_code", phone_country_code);
+                        request.AddParameter("phone_territory_code", phone_territory_code);
+                        request.AddParameter("a", A);
+                        response = client.ExecuteAsync(request).Result;
+                        data = JsonConvert.DeserializeObject<dynamic>(response.Content);
+                    }
+                    catch
+                    {
+                        throw new Exception("Yêu cầu Challenge thất bại");
+                    }
+
+                    Log(">> Kiểm tra Challenge");
+                    if (data.error != null)
+                    {
+                        string error = data.error;
+                        string status_code = data.status_code;
+
+                        if (status_code.Equals("404"))
+                        {
+                            States.NotFound++;
+                            Account.Status = AccountStatus.NotFound;
+                            Account.Data = error;
+                            mAccountManager.Write(Account);
+                            Account = null;
+                            continue;
+                        }
+                        else if (status_code.Equals("403"))
+                        {
+                            States.NotFound++;
+                            Account.Status = AccountStatus.NotFound;
+                            Account.Data = error;
+                            mAccountManager.Write(Account);
+                            Account = null;
+                            continue;
+                        }
+                        else
+                        {
+                            States.Other++;
+                            Account.Status = AccountStatus.Other;
+                            Account.Data = error;
+                            mAccountManager.Write(Account);
+                            Account = null;
+                            continue;
+                        }
+                    }
+                    else if (data.g != null && data.s != null && data.q != null)
+                    {
+                        Log(">> Ghi kết quả");
+                        States.Perfect++;
+                        Account.Status = AccountStatus.Perfect;
+                        mAccountManager.Write(Account);
+                        Account = null;
+                    }
+                    else
+                    {
+                        throw new Exception("Yêu cầu Challenge thất bại");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (mConfig.ShowExc)
+                    {
+                        Console.WriteLine($">> Lỗi phát sinh: {ex}");
+                    }
+                }
+                finally
+                {
+                    Log(">> Dọn dẹp tài nguyên");
+
+                    if (username != null)
+                    {
+                        try
+                        {
+                            mChromeClient.Page.EvaluateFunctionAsync("async (name) => RemoveSRP(name)", username).Wait();
+                        }
+                        catch { }
+                    }
+                    if (Account != null)
+                    {
+                        mAccountManager.Push(Account);
+                        Account = null;
+                    }
+                    if (Proxy != null)
+                    {
+                        if (!mConfig.DuplProxy)
+                        {
+                            mProxyManager.Push(Proxy);
+                        }
+                        Proxy = null;
+                    }
+                }
+            }
+        }
+
+        #endregion
+
+        #region
+
+        private void CheckFull()
+        {
+            while (true)
+            {
+                Log(">> Khởi tạo biến gửi");
                 string referer = "https://www.kkbox.com/";
                 string recaptcha = "";
                 string remember = "";
@@ -92,7 +266,7 @@ namespace KKBoxCD.Core
                     Proxy = mProxyManager.Random();
                     if (Proxy == null)
                     {
-                        Log("Đã hết Proxy");
+                        Log(">> Đã hết Proxy");
                         break;
                     }
 
@@ -100,7 +274,7 @@ namespace KKBoxCD.Core
                     Account = mAccountManager.Get();
                     if (Account == null)
                     {
-                        Log("Đã hết Account");
+                        Log(">> Đã hết Account");
                         break;
                     }
 
@@ -114,11 +288,16 @@ namespace KKBoxCD.Core
                     {
                         proxy = new WebProxy(Proxy.Address, Proxy.Port);
                     }
-                    if (Proxy.Username != null && Proxy.Password != null)
+                    if (!string.IsNullOrEmpty(Proxy.Username) && !string.IsNullOrEmpty(Proxy.Password))
                     {
                         proxy.Credentials = new NetworkCredential(Proxy.Username, Proxy.Password);
                     }
-                    RestClient client = new RestClient();
+                    RestClient client = new RestClient(new RestClientOptions
+                    {
+                        Proxy = proxy,
+                        UserAgent = Addons.RandomUserAgent(),
+                        Timeout = 10000
+                    });
 
                     Log(">> Yêu cầu Friend");
                     try
@@ -127,15 +306,15 @@ namespace KKBoxCD.Core
                         response = client.ExecuteAsync(request).Result;
                         data = JsonConvert.DeserializeObject<dynamic>(response.Content);
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        throw new Exception("Yêu cầu Friend thất bại");
+                        throw new Exception(string.Concat("Yêu cầu Friend thất bại: ", ex.Message));
                     }
 
                     Log(">> Kiểm tra Friend");
                     if (data.q == null)
                     {
-                        throw new Exception("Yêu cầu Friend thất bại");
+                        throw new Exception(string.Concat("Yêu cầu Friend thất bại: ", response.Content));
                     }
 
                     Log(">> Gán Friend, Username, Secret");
@@ -187,14 +366,30 @@ namespace KKBoxCD.Core
                     if (data.error != null)
                     {
                         string error = data.error;
-                        string error_category = data.error_category;
-                        string error_code = data.error_code;
-                        string error_level = data.error_level;
                         string status_code = data.status_code;
 
-                        //Phân loại lỗi
-
-                        throw new Exception(error);
+                        if (status_code.Equals("404"))
+                        {
+                            States.NotFound++;
+                            Account.Status = AccountStatus.NotFound;
+                            Account.Data = error;
+                            mAccountManager.Write(Account);
+                            Account = null;
+                            continue;
+                        }
+                        else if (status_code.Equals("403"))
+                        {
+                            States.LoginFailed++;
+                            Account.Status = AccountStatus.LoginFailed;
+                            Account.Data = error;
+                            mAccountManager.Write(Account);
+                            Account = null;
+                            continue;
+                        }
+                        else
+                        {
+                            throw new Exception(string.Concat("Phân loại lỗi thất bại: ", error));
+                        }
                     }
                     else if (data.g != null && data.s != null && data.q != null)
                     {
@@ -210,7 +405,7 @@ namespace KKBoxCD.Core
                     Log(">> Tái khởi tạo SRP, tính A");
                     try
                     {
-                        A = mChromeClient.Page.EvaluateFunctionAsync<string>(@"(name, g, s) => {
+                        A = mChromeClient.Page.EvaluateFunctionAsync<string>(@"async (name, g, s) => {
                         const srp = GetSRP(name);
                         srp.init(g);
                         srp.s = s;
@@ -241,14 +436,30 @@ namespace KKBoxCD.Core
                     if (data.error != null)
                     {
                         string error = data.error;
-                        string error_category = data.error_category;
-                        string error_code = data.error_code;
-                        string error_level = data.error_level;
                         string status_code = data.status_code;
 
-                        // Phân loại lỗi
-
-                        throw new Exception(error);
+                        if (status_code.Equals("404"))
+                        {
+                            States.NotFound++;
+                            Account.Status = AccountStatus.NotFound;
+                            Account.Data = error;
+                            mAccountManager.Write(Account);
+                            Account = null;
+                            continue;
+                        }
+                        else if (status_code.Equals("403"))
+                        {
+                            States.LoginFailed++;
+                            Account.Status = AccountStatus.LoginFailed;
+                            Account.Data = error;
+                            mAccountManager.Write(Account);
+                            Account = null;
+                            continue;
+                        }
+                        else
+                        {
+                            throw new Exception(string.Concat("Phân loại lỗi thất bại: ", error));
+                        }
                     }
                     else if (data.B != null)
                     {
@@ -262,7 +473,7 @@ namespace KKBoxCD.Core
                     Log(">> Gán giá trị SRP");
                     try
                     {
-                        mChromeClient.Page.EvaluateFunctionAsync(@"(name, username, secret, B) => {
+                        mChromeClient.Page.EvaluateFunctionAsync(@"async (name, username, secret, B) => {
                             const srp = GetSRP(name);
                             srp.I = username;
                             srp.p = srp.computeHash(secret);
@@ -284,13 +495,11 @@ namespace KKBoxCD.Core
                     Log(">> Kiểm tra Submit");
                     if (!g.Equals("G2048"))
                     {
-                        Log(">>>> Submit 1");
-                        // Sử lý Submit 1
-                        return;
+                        throw new Exception("Không phải Submit G2048");
                     }
 
                     Log(">> Kiểm tra ReChallenge");
-                    bool re_challenge = mChromeClient.Page.EvaluateFunctionAsync<bool>(@"(name) => {
+                    bool re_challenge = mChromeClient.Page.EvaluateFunctionAsync<bool>(@"async (name) => {
                         const srp = GetSRP(name);
                         return !srp.verifyB() && srp.verifyHAB();
                     }", ori_username).Result;
@@ -302,7 +511,7 @@ namespace KKBoxCD.Core
                     Log(">> Mã hóa mật khẩu");
                     try
                     {
-                        secret = mChromeClient.Page.EvaluateFunctionAsync<string>(@"(name) => {
+                        secret = mChromeClient.Page.EvaluateFunctionAsync<string>(@"async (name) => {
                             const srp = GetSRP(name);
                             srp.computeVerifier();
                             let ck = srp.computeClientK();
@@ -340,13 +549,23 @@ namespace KKBoxCD.Core
                     Log(">> Kiểm tra Submit");
                     if (response.Content.Contains("passed the reCAPTCHA"))
                     {
-                        // Sử lý captcha failed
-                        throw new Exception("Vượt qua reCAPTCHA thất bại");
+                        States.RecaptchaFailed++;
+                        Account.Status = AccountStatus.RecaptchaFailed;
+                        Account.Data = "passed the reCAPTCHA";
+                        mAccountManager.Write(Account);
+                        Account = null;
+                        continue;
+
+                        //throw new Exception("Vượt qua reCAPTCHA thất bại");
                     }
                     else if (response.Content.Contains("Login has failed"))
                     {
-                        // Xử lý login failed
-                        throw new Exception("Đăng nhập thất bại");
+                        States.LoginFailed++;
+                        Account.Status = AccountStatus.LoginFailed;
+                        Account.Data = "Login has failed";
+                        mAccountManager.Write(Account);
+                        Account = null;
+                        continue;
                     }
 
                     Log(">> Yêu cầu Auth");
@@ -361,7 +580,10 @@ namespace KKBoxCD.Core
                     }
 
                     Log(">> Kiểm tra Auth");
-                    // kiểm tra xem có phải trang member center
+                    if (!response.Content.Contains("member center"))
+                    {
+                        throw new Exception("Yêu cầu Auth thất bại");
+                    }
 
                     Log(">> Yêu cầu Plan");
                     try
@@ -375,24 +597,31 @@ namespace KKBoxCD.Core
                     }
 
                     Log(">> Kiểm tra Plan");
-                    //Kiểm tra xem có phải trang plan
+                    if (!response.Content.Contains("My Plans"))
+                    {
+                        throw new Exception("Yêu cầu Plan thất bại");
+                    }
                     try
                     {
-                        Account.Plan = mChromeClient.Page.EvaluateFunctionAsync<string>("(html) => GetPlanFromHTML(html)", response.Content).Result;
+                        Account.Data = mChromeClient.Page.EvaluateFunctionAsync<string>("async (html) => GetPlanFromHTML(html)", response.Content).Result;
                     }
                     catch
                     {
-                        Account.Plan = "Get Failed";
+                        Account.Data = "Get Failed";
                     }
 
                     Log(">> Ghi kết quả");
+                    States.Perfect++;
                     Account.Status = AccountStatus.Perfect;
                     mAccountManager.Write(Account);
                     Account = null;
                 }
                 catch (Exception ex)
                 {
-                    Log($">> Lỗi phát sinh: {ex}");
+                    if (mConfig.ShowExc)
+                    {
+                        Console.WriteLine($">> Lỗi phát sinh: {ex}");
+                    }
                 }
                 finally
                 {
@@ -402,7 +631,7 @@ namespace KKBoxCD.Core
                     {
                         try
                         {
-                            mChromeClient.Page.EvaluateFunctionAsync("(name) => RemoveSRP(name)", ori_username).Wait();
+                            mChromeClient.Page.EvaluateFunctionAsync("async (name) => RemoveSRP(name)", ori_username).Wait();
                         }
                         catch { }
                     }
@@ -413,6 +642,7 @@ namespace KKBoxCD.Core
                     }
                     if (Proxy != null)
                     {
+                        mProxyManager.Push(Proxy);
                         Proxy = null;
                     }
                 }

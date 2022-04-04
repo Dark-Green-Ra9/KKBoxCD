@@ -1,4 +1,5 @@
-﻿using KKBoxCD.Properties;
+﻿using KKBoxCD.Core.Manager;
+using KKBoxCD.Properties;
 using PuppeteerExtraSharp;
 using PuppeteerSharp;
 using System;
@@ -46,15 +47,18 @@ namespace KKBoxCD.Core
                 Browser = null;
             }
 
+            Proxy proxy = ProxyManager.Instance.Random();
             PuppeteerExtra extra = new PuppeteerExtra();
             LaunchOptions options = new LaunchOptions()
             {
                 Headless = false,
                 ExecutablePath = Consts.ChromeFile,
+                DefaultViewport = null,
                 Args = new string[]
                 {
+                    //$"--proxy-server=\"{proxy.Address}:{proxy.Port}\"",
                     "--app=\"data:text/html,<title>Recaptcha Client</title>\"",
-                    "--window-size=270,150",
+                    "--window-size=800,600",
                     "--allow-cross-origin-auth-prompt",
                     "--disable-web-security",
                     "--disable-sync",
@@ -96,7 +100,17 @@ namespace KKBoxCD.Core
             Page = Browser.PagesAsync().Result[0];
             Page.SetRequestInterceptionAsync(true).Wait();
             Page.Request += OnRequest;
-            Page.GoToAsync("https://kkid.kkbox.com/login").Wait();
+            try
+            {
+                Page.GoToAsync("https://kkid.kkbox.com/login", new NavigationOptions
+            {
+                WaitUntil = new WaitUntilNavigation[]
+                {
+                    WaitUntilNavigation.Networkidle0
+                }
+            }).Wait();
+            }
+            catch { }
 
             IsReady = true;
             return this;

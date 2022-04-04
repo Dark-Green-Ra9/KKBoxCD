@@ -1,4 +1,5 @@
-﻿using KKBoxCD.Properties;
+﻿using KKBoxCD.Core.Utils;
+using KKBoxCD.Properties;
 using PuppeteerExtraSharp;
 using PuppeteerSharp;
 using System;
@@ -15,6 +16,8 @@ namespace KKBoxCD.Core
 
         #endregion
 
+        private Config mConfig;
+
         public bool IsReady { get; private set; }
 
         public Browser Browser { get; private set; }
@@ -23,7 +26,7 @@ namespace KKBoxCD.Core
 
         protected ChromeClient()
         {
-
+            mConfig = Config.Instance;
         }
 
         public ChromeClient Init()
@@ -53,7 +56,7 @@ namespace KKBoxCD.Core
             PuppeteerExtra extra = new PuppeteerExtra();
             LaunchOptions options = new LaunchOptions()
             {
-                Headless = false,
+                Headless = !mConfig.IsDebug,
                 ExecutablePath = Consts.ChromeFile,
                 Args = new string[]
                 {

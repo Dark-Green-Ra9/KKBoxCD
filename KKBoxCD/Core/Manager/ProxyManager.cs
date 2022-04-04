@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using KKBoxCD.Core.Utils;
 
 namespace KKBoxCD.Core.Manager
 {
@@ -19,13 +20,15 @@ namespace KKBoxCD.Core.Manager
 
         private List<string> RawData;
 
+        private Config mConfig;
+
         protected ProxyManager()
         {
             if (!File.Exists(Consts.ProxyFile))
             {
                 File.Create(Consts.ProxyFile).Close();
             }
-
+            mConfig = Config.Instance;
             Load();
         }
 
@@ -46,15 +49,24 @@ namespace KKBoxCD.Core.Manager
                 return null;
             }
             int index = new Random().Next(0, Count());
+            string raw = RawData[index];
+            if (!mConfig.DuplProxy)
+            {
+                RawData.RemoveAt(index);
+            }
             try
             {
-                return new Proxy(RawData[index]);
+                return new Proxy(raw);
             }
             catch
             {
-                RawData.RemoveAt(index);
                 return Random();
             }
+        }
+
+        public void Push(Proxy proxy)
+        {
+            RawData.Add(proxy.Raw);
         }
 
         public int Count()

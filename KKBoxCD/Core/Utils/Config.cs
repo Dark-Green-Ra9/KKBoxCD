@@ -35,9 +35,9 @@ namespace KKBoxCD.Core.Utils
 
         public int ThreadSize { get; set; } = 1;
 
-        public int PageTimeout { get; set; } = 15000;
+        public bool DuplProxy { get; set; } = false;
 
-        public int TimesPerBrowser { get; set; } = 10;
+        public bool ShowExc { get; set; } = false;
 
         public bool IsDebug { get; set; } = false;
 
