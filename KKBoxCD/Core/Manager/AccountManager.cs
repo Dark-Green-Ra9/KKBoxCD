@@ -149,7 +149,9 @@ namespace KKBoxCD.Core.Manager
         Null,
         Perfect,
         Wrong,
+        G2048,
         NotExist,
         LoginFail,
+        CaptchaFail
     }
 }

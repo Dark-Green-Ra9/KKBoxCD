@@ -1,6 +1,6 @@
-﻿<!DOCTYPE html>
+﻿
+<!DOCTYPE html>
 <html>
-
 <head>
 
     <meta charset="utf-8">
@@ -9,53 +9,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
 
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-        crossorigin="anonymous"></script>
+    <!--<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>-->
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>-->
+    <!--<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+            integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+            crossorigin="anonymous"></script>-->
 
-    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
-    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet">
+    <!--<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>-->
+    <!--<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">-->
+    <!--<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet">-->
 
-    <script src="https://unpkg.com/material-components-web@v5.0.0/dist/material-components-web.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/material-components-web@v5.0.0/dist/material-components-web.min.css">
+    <!--<script src="https://unpkg.com/material-components-web@v5.0.0/dist/material-components-web.min.js"></script>-->
+    <!--<link rel="stylesheet" href="https://unpkg.com/material-components-web@v5.0.0/dist/material-components-web.min.css">-->
 
-    <script src="/static/js/intlTelInput.min.js"></script>
-    <link href="/static/css/intlTelInput.min.css" rel="stylesheet" crossorigin="anonymous">
+    <!--<script src="/static/js/intlTelInput.min.js"></script>-->
+    <!--<link href="/static/css/intlTelInput.min.css" rel="stylesheet" crossorigin="anonymous">-->
 
-    <link href="/static/css/account-style.css" rel="stylesheet" crossorigin="anonymous">
-    <link href="/static/css/global-font.css" rel="stylesheet" crossorigin="anonymous">
-    <link href="/static/css/style.css" rel="stylesheet" crossorigin="anonymous">
+    <!--<link href="/static/css/account-style.css" rel="stylesheet" crossorigin="anonymous">-->
+    <!--<link href="/static/css/global-font.css" rel="stylesheet" crossorigin="anonymous">-->
+    <!--<link href="/static/css/style.css" rel="stylesheet" crossorigin="anonymous">-->
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js"></script>
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js"></script>-->
 
     <script>
         Lang = "vi";
         Redirect = "";
-        Referer = "https:\/\/www.kkbox.com\/";
+        Referer = "https:\/\/mykkid.kkbox.com\/";
         ClientID = "";
         State = "";
         RedirectUri = "";
     </script>
 
-    <script>(function (w, d, s, l, i) {
+    <script>
+        (function (w, d, s, l, i) {
             w[l] = w[l] || []; w[l].push({
                 'gtm.start':
                     new Date().getTime(), event: 'gtm.js'
             }); var f = d.getElementsByTagName(s)[0],
                 j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
                     'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
-        })(window, document, 'script', 'dataLayer', 'GTM-5PKLBKX');</script>
+        })//(window, document, 'script', 'dataLayer', 'GTM-5PKLBKX');</script>
 
 
 </head>
-
 <body id="page-login">
 
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5PKLBKX" height="0" width="0"
-            style="display:none;visibility:hidden"></iframe></noscript>
+    <noscript>
+        <!--<iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5PKLBKX"
+                height="0" width="0" style="display:none;visibility:hidden"></iframe>-->
+    </noscript>
 
     <div id="wrapper">
 
@@ -67,27 +69,13 @@
         <div class="container">
 
             <script src='https://www.google.com/recaptcha/api.js?render=6LcuGcoUAAAAAB8E-zI7hoiQ_fcudMnk9YVZtW4m'></script>
-            <script src='/static/js/hashes.min.js'></script>
-            <script src='/static/js/jsbn.js'></script>
-            <script src='/static/js/jsbn2.js'></script>
-            <script src='/static/js/scrypt.js'></script>
-            <script src='/static/js/srp.js'></script>
-            <script type="text/javascript" src="/static/js/base64.js"></script>
-
-            <script>
-                const ListSRP = {};
-            
-                function GetSRP(name) {
-                    if (ListSRP[name] == null) {
-                        ListSRP[name] = new SRP();
-                    }
-                    return ListSRP[name];
-                }
-            
-                function RemoveSRP(name) {
-                    delete ListSRP[name];
-                }
-            </script>
+            <!--<script src='/static/js/hashes.min.js'></script>-->
+            <!--<script src='/static/js/jsbn.js'></script>-->
+            <!--<script src='/static/js/jsbn2.js'></script>-->
+            <!--<script src='/static/js/scrypt.js'></script>-->
+            <!--<script src='/static/js/srp.js'></script>-->
+            <!--<script type="text/javascript" src="/static/js/base64.js"></script>-->
+            <!--<script src="/static/js/myfriend.js"></script>-->
 
             <div class="row">
                 <div class="form-box center-block">
@@ -101,10 +89,11 @@
                                 <label class="mdc-text-field account-toggle">
                                     <input id="show_phone_country_code" name="show_phone_country_code" />
                                     <input id="show-username" name="show-username"
-                                        class="mdc-text-field__input clear_space" aria-labelledby="show-username"
-                                        placeholder="Email or mobile number" type="text" />
+                                           class="mdc-text-field__input clear_space" aria-labelledby="show-username"
+                                           placeholder="Email or mobile number"
+                                           type="text" />
                                     <span class="mdc-floating-label" id="username-label">Account</span>
-                                    <img class="clear_icon" src="/static/img/ic-clear.svg" alt="clear icon" />
+                                    <!--<img class="clear_icon" src="/static/img/ic-clear.svg" alt="clear icon" />-->
                                     <div class="mdc-line-ripple"></div>
                                 </label>
                             </div>
@@ -115,8 +104,8 @@
                         <div class="form-group">
                             <label class="mdc-text-field eye-container">
                                 <input id="show-password" name="show-password" placeholder="Password"
-                                    class="mdc-text-field__input password_input" aria-labelledby="show-password"
-                                    type="password" />
+                                       class="mdc-text-field__input password_input" aria-labelledby="show-password"
+                                       type="password" />
                                 <span class="mdc-floating-label" id="password-label">Password</span>
                                 <div class="eye eye-hide"></div>
                                 <div class="mdc-line-ripple"></div>
@@ -129,7 +118,8 @@
                                 <input id="login_remember_me" type="checkbox" name="remember_me" value="1">
                                 <p class="remember_me">Remember me</p>
                             </label>
-                            <a class="forget_password" href="/forget_password">Forgot password?</a>
+                            <a class="forget_password"
+                               href="/forget_password">Forgot password?</a>
                             <div class="clear"></div>
                             <div class="column-error">
 
@@ -139,7 +129,7 @@
                                 <input id="remember" name="remember" type="hidden" value="">
                                 <input id="recaptcha" name="recaptcha" type="hidden" value="">
                                 <input id="redirect" name="redirect" type="hidden" value="">
-                                <input id="referer" name="referer" type="hidden" value="https://www.kkbox.com/">
+                                <input id="referer" name="referer" type="hidden" value="https://mykkid.kkbox.com/">
                                 <input id="friend" name="friend" type="hidden">
                                 <input id="phone_country_code" name="phone_country_code" type="hidden" />
                                 <input id="phone_territory_code" name="phone_territory_code" type="hidden" />
@@ -148,10 +138,11 @@
                                 <input id="secret" name="secret" type="hidden">
                                 <input id="t" name="t" type="hidden">
                                 <input id="btn-submit" class="btn btn-block btn-default btn-lg btn-primary btn-login"
-                                    type="button" value="Confirm" disabled />
-                                <input id="btn-after-submit"
-                                    class="btn btn-block btn-default btn-lg btn-primary btn-login" type="button"
-                                    value="Submitted Successfully" disabled />
+                                       type="button"
+                                       value="Confirm" disabled />
+                                <input id="btn-after-submit" class="btn btn-block btn-default btn-lg btn-primary btn-login"
+                                       type="button"
+                                       value="Submitted Successfully" disabled />
                             </form>
                         </div>
                     </div>
@@ -159,12 +150,12 @@
                     <div class="bottom_block">
                         <p class="or_hr">or</p>
                         <a id="signup_url" class="btn btn-block btn-default btn-primary" href="/signup">Register</a>
+                        <!--<img class="kkbox_group_logo" src="/static/img/KKCOMPANY-logo-Black.png" height="30px" alt="KKCompany" />-->
                     </div>
 
                     <div class="dropdown lang-selector">
-                        <button id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true"
-                            aria-expanded="false">
-                            English<img class="ic-dropdown" src="/static/img/ic-dropdown.png" alt="dropdown icon">
+                        <button id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            English<!--<img class="ic-dropdown" src="/static/img/ic-dropdown.png" alt="dropdown icon">-->
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="dLabel">
 
@@ -186,11 +177,38 @@
                 </div>
             </div>
             <script>
+
+                //var recaptcha_enable = true;
+                //$(() => {
+                //    grecaptcha.ready(() => {
+                //        var setRecaptchaToken = function () {
+                //            grecaptcha.execute('6LcuGcoUAAAAAB8E-zI7hoiQ_fcudMnk9YVZtW4m', { action: 'login' }).then((token) => {
+                //                $('#recaptcha').val(token);
+                //            });
+                //        };
+                //        setRecaptchaToken();
+                //        setInterval(setRecaptchaToken, 100000);
+                //    });
+                //});
+
+
+                //var target_input = "#show-username";
+                //var itiSwitch = true;
+                //var input = document.getElementById("show_phone_country_code");
+                //var iti = window.intlTelInput(input, {
+                //    initialCountry: "VN",
+                //});
             </script>
+            <!--<script type="text/javascript" src="/static/js/iti.js"></script>-->
+            <!--<script type="text/javascript" src="/static/js/mdc.js"></script>-->
+            <!--<script type="text/javascript" src="/static/js/page/login.js"></script>-->
 
         </div>
     </div>
-    <!-- 5922e5538b51b82a715d7736e93ec83eb5625e52 -->
-</body>
 
+
+    <!-- 5922e5538b51b82a715d7736e93ec83eb5625e52 -->
+
+
+</body>
 </html>

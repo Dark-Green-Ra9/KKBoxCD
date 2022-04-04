@@ -121,6 +121,9 @@
   <data name="base64" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\js\base64.js;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
+  <data name="chrome_client" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\js\chrome.client.js;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
   <data name="hashes_min" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\js\hashes.min.js;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
@@ -131,7 +134,7 @@
     <value>..\resources\js\jsbn2.js;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
   <data name="login" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\login.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+    <value>..\resources\html\login.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="scrypt" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\js\scrypt.js;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>

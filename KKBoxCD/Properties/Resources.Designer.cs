@@ -19,7 +19,7 @@ namespace KKBoxCD.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -74,12 +74,42 @@ namespace KKBoxCD.Properties {
         ///    var SLASH_URL_SAFE = &apos;_&apos;.charCodeAt(0)
         ///
         ///    function decode(elt) {
-        ///        var code = elt.charCodeAt(0)
-        ///  [rest of string was truncated]&quot;;.
+        ///        var code = elt.ch [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string base64 {
             get {
                 return ResourceManager.GetString("base64", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to const ListSRP = {};
+        ///
+        ///function GetSRP(name) {
+        ///    if (ListSRP[name] == null) {
+        ///        ListSRP[name] = new SRP();
+        ///    }
+        ///    return ListSRP[name];
+        ///}
+        ///
+        ///function RemoveSRP(name) {
+        ///    delete ListSRP[name];
+        ///}
+        ///
+        ///function GetPlanFromHTML(html) {
+        ///    try {
+        ///        const root = document.createElement(&quot;div&quot;);
+        ///        root.innerHTML = html;
+        ///
+        ///        const card = root.querySelector(&apos;.plan_card&apos;);
+        ///        const data = card.innerText.trim().split(&apos;\n&apos;);
+        ///        var plan = &apos;&apos;;
+        ///
+        ///        if (data.length  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string chrome_client {
+            get {
+                return ResourceManager.GetString("chrome_client", resourceCulture);
             }
         }
         
@@ -118,8 +148,7 @@ namespace KKBoxCD.Properties {
         ///function am1(i, x, w, j, c, n) {
         ///    while (--n &gt;= 0) {
         ///        var v = x * this[i++] + w[j] + c;
-        ///        c = Math.floor(v / 0x4000000);
-        ///        w [rest of string was truncated]&quot;;.
+        ///        c = Math.floor(v / 0x4 [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string jsbn {
             get {
@@ -148,7 +177,7 @@ namespace KKBoxCD.Properties {
         ///}
         ///
         ///function bnShortValue() {
-        ///    return (this.t == 0) ? [rest of string was truncated]&quot;;.
+        ///    re [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string jsbn2 {
             get {
@@ -157,22 +186,20 @@ namespace KKBoxCD.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;html&gt;
-        ///
+        ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
+        ///&lt;html&gt;
         ///&lt;head&gt;
-        ///&lt;/head&gt;
         ///
-        ///&lt;body&gt;
-        ///    &lt;script src=&apos;hashes.min.js&apos;&gt;&lt;/script&gt;
-        ///    &lt;script src=&apos;jsbn.js&apos;&gt;&lt;/script&gt;
-        ///    &lt;script src=&apos;jsbn2.js&apos;&gt;&lt;/script&gt;
-        ///    &lt;script src=&apos;scrypt.js&apos;&gt;&lt;/script&gt;
-        ///    &lt;script src=&apos;srp.js&apos;&gt;&lt;/script&gt;
-        ///    &lt;script src=&quot;base64.js&quot;&gt;&lt;/script&gt;
+        ///    &lt;meta charset=&quot;utf-8&quot;&gt;
+        ///    &lt;title&gt;Log In&lt;/title&gt;
+        ///    &lt;meta name=&quot;robots&quot; content=&quot;noindex&quot;&gt;
+        ///    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0, user-scalable=no&quot;&gt;
         ///
-        ///    &lt;form id=&quot;form&quot; method=&quot;post&quot; action=&quot;https://kkid.kkbox.com/login&quot;&gt;
-        ///        &lt;input id=&quot;referer&quot; name=&quot;referer&quot; placeholder=&quot;referer&quot; value=&quot;https://mykkid.kkbox.com/&quot;&gt; &lt;br /&gt;
-        ///        &lt;input id=&quot;recaptcha&quot; name=&quot;recaptcha&quot; placeholder= [rest of string was truncated]&quot;;.
+        ///
+        ///    &lt;script src=&quot;https://code.jquery.com/jquery-3.4.1.min.js&quot;&gt;&lt;/script&gt;
+        ///    &lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js&quot;&gt;&lt;/script&gt;
+        ///    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js&quot;
+        ///      [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string login {
             get {
@@ -202,8 +229,7 @@ namespace KKBoxCD.Properties {
         ///    s || (s = eval(&quot;(function() { try { return Module || {} } catch(e) { return {} } })()&quot;));
         ///    var ba = {},
         ///        t;
-        ///    for (t in s) {
-        ///       [rest of string was truncated]&quot;;.
+        ///     [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string scrypt {
             get {
@@ -237,7 +263,7 @@ namespace KKBoxCD.Properties {
         ///SRP.prototype.init = function (g) {
         ///    switch (g) {
         ///        case &quot;G3072&quot;:
-        ///            this.N = new BigIntege [rest of string was truncated]&quot;;.
+        ///          [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string srp {
             get {

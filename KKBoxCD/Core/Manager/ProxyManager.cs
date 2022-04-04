@@ -80,6 +80,10 @@ namespace KKBoxCD.Core.Manager
 
         public int Port { get; private set; }
 
+        public string Username { get; private set; }
+
+        public string Password { get; private set; }
+
         public Proxy(string raw)
         {
             if (string.IsNullOrEmpty(raw))
@@ -91,6 +95,12 @@ namespace KKBoxCD.Core.Manager
             Raw = raw;
             Address = data[0].Trim();
             Port = int.Parse(data[1].Trim());
+
+            if (data.Length > 3)
+            {
+                Username = data[2].Trim();
+                Username = data[3].Trim();
+            }
         }
     }
 }
