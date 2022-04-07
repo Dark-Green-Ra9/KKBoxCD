@@ -86,28 +86,34 @@ namespace KKBoxCD.Properties {
         /// <summary>
         ///   Looks up a localized string similar to const ListSRP = {};
         ///
-        ///function GetSRP(name) {
-        ///    if (ListSRP[name] == null) {
-        ///        ListSRP[name] = new SRP();
-        ///    }
-        ///    return ListSRP[name];
-        ///}
-        ///
-        ///function RemoveSRP(name) {
-        ///    delete ListSRP[name];
-        ///}
-        ///
-        ///function GetPlanFromHTML(html) {
-        ///    try {
-        ///        const root = document.createElement(&quot;div&quot;);
-        ///        root.innerHTML = html;
-        ///
-        ///        if (root.querySelector(&quot;.no_plan&quot;) != null) {
-        ///            return &quot;No Plan&quot;;
-        ///        }
-        ///
-        ///        const card = root.querySelector(&quot;.plan_card&quot;);
-        ///         [rest of string was truncated]&quot;;.
+        ///const CountryData = {
+        ///    &quot;af&quot;: &quot;93&quot;,
+        ///    &quot;al&quot;: &quot;355&quot;,
+        ///    &quot;dz&quot;: &quot;213&quot;,
+        ///    &quot;as&quot;: &quot;1&quot;,
+        ///    &quot;ad&quot;: &quot;376&quot;,
+        ///    &quot;ao&quot;: &quot;244&quot;,
+        ///    &quot;ai&quot;: &quot;1&quot;,
+        ///    &quot;ag&quot;: &quot;1&quot;,
+        ///    &quot;ar&quot;: &quot;54&quot;,
+        ///    &quot;am&quot;: &quot;374&quot;,
+        ///    &quot;aw&quot;: &quot;297&quot;,
+        ///    &quot;au&quot;: &quot;61&quot;,
+        ///    &quot;at&quot;: &quot;43&quot;,
+        ///    &quot;az&quot;: &quot;994&quot;,
+        ///    &quot;bs&quot;: &quot;1&quot;,
+        ///    &quot;bh&quot;: &quot;973&quot;,
+        ///    &quot;bd&quot;: &quot;880&quot;,
+        ///    &quot;bb&quot;: &quot;1&quot;,
+        ///    &quot;by&quot;: &quot;375&quot;,
+        ///    &quot;be&quot;: &quot;32&quot;,
+        ///    &quot;bz&quot;: &quot;501&quot;,
+        ///    &quot;bj&quot;: &quot;229&quot;,
+        ///    &quot;bm&quot;: &quot;1&quot;,
+        ///    &quot;bt&quot;: &quot;975&quot;,
+        ///    &quot;bo&quot;: &quot;591&quot;,
+        ///    &quot;ba&quot;: &quot;387&quot;,
+        ///    ....
         /// </summary>
         internal static string chrome_client {
             get {

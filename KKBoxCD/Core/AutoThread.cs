@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading;
 using KKBoxCD.Core.Manager;
 using KKBoxCD.Core.Support;
@@ -24,7 +25,7 @@ namespace KKBoxCD.Core
         private readonly AccountManager mAccountManager;
         private readonly ProxyManager mProxyManager;
         private readonly ChromeClient mChromeClient;
-        private readonly RecaptchaClient mRecaptchaClient;
+        private readonly XevilClient mXevilClient;
 
         #region Properties Variable
 
@@ -62,7 +63,7 @@ namespace KKBoxCD.Core
             mAccountManager = AccountManager.Instance;
             mProxyManager = ProxyManager.Instance;
             mChromeClient = ChromeClient.Instance;
-            mRecaptchaClient = RecaptchaClient.Instance;
+            mXevilClient = XevilClient.Instance;
         }
 
         #region Operating Function
@@ -281,21 +282,21 @@ namespace KKBoxCD.Core
             {
                 Log(">> Khởi tạo biến gửi");
                 string referer = "https://www.kkbox.com/";
-                string recaptcha = "";
-                string remember = "";
-                string redirect = "";
-                string phone_country_code = "65";
-                string phone_territory_code = "SG";
-                string friend = "";
-                string ori_username = "";
-                string username = "";
-                string secret = "";
-                string t = "";
+                string recaptcha = string.Empty;
+                string remember = "1";
+                string redirect = string.Empty;
+                string phone_country_code = string.Empty;
+                string phone_territory_code = string.Empty;
+                string friend = string.Empty;
+                string ori_username = string.Empty;
+                string username = string.Empty;
+                string secret = string.Empty;
+                string t = string.Empty;
 
                 Log(">> Khởi tạo biến nháp");
                 RestClient client = null;
-                RestRequest request;
-                RestResponse response;
+                RestRequest request = null;
+                RestResponse response = null;
                 dynamic data = null;
                 string A = null;
                 string g = null;
@@ -340,6 +341,38 @@ namespace KKBoxCD.Core
                         UserAgent = Addons.RandomUserAgent(),
                         Timeout = 10000
                     });
+
+                    Log(">> Yêu cầu Page");
+                    try
+                    {
+                        request = new RestRequest("https://kkid.kkbox.com/login", Method.Get);
+                        response = client.ExecuteAsync(request).Result;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception(string.Concat("Yêu cầu Page: ", ex.Message));
+                    }
+
+                    Log(">> Trich xuất CountryCode");
+                    try
+                    {
+                        Regex regex = new Regex("initialCountry: \"(.*?)\",");
+                        MatchCollection matched = regex.Matches(response.Content);
+                        phone_territory_code = matched[0].Groups[1].Value;
+                        phone_country_code = mChromeClient.Page.EvaluateFunctionAsync<string>("(country) => GetDialCode(country)", phone_territory_code).Result;
+                    }
+                    catch
+                    {
+                        string[][] temps = new string[][]
+                        {
+                            new string[] { "TW", "886" },
+                            new string[] { "SG", "65" },
+                            new string[] { "HK", "852" }
+                        };
+                        string[] temp = temps[new Random().Next(0, temps.Length)];
+                        phone_territory_code = temp[0];
+                        phone_country_code = temp[1];
+                    }
 
                     Log(">> Yêu cầu Friend");
                     try
@@ -536,8 +569,7 @@ namespace KKBoxCD.Core
                     }
 
                     Log(">> Khởi tạo Recaptcha");
-                    //recaptcha = mRecaptchaClient.GetToken();
-                    recaptcha = "03AGdBq25tXgFIWEwtRQ8oePqoxb5q_TPoGxX2cRoXsVxPujjUjxH5zW99WOg8lOfUdctYgJ3W4anbjHgIeNK0ukylHaYDUtq4MiA4DNNsudGi9mzVqL1Ozm7SZz5MX27-se3lqNPUGAE4nLKJGAEbKkLZVwMxahk1GFKSrEYKpuWREDT8uI5z8JR5b33kdicfh8Q9V-_m1GCPy6CMjGV3GjU7L2KCNoMRkA7ZOoFD-gC5iwjIyZzsowQeM9qSsBaLcFTJJnXgHXwIuvVUgUjHj_b_-QJRbn3hBhQhlOPaozZNTeHItad9I3nW1kYIV-5WHminTQlNZs5xzWisX7mGsji2Tc_PTWFUXqsKXoBebRU7p_3Lt4wcD0OEHHp3rmz5KVTTYSLpzbJRZypv_QJepYkqJNHwmrFgF6WVk-Szc0wpHoNwMPgLmTQjf4IDXo3q6Kxwwditg4HN";
+                    recaptcha = "03AGdBq25sTrB2GcNyvZjp6QdhmdqJFNeVFZ19teUs2FkLbJ4y_oVOk_I5m_eWxej_8_ncs1jZf3yFSi-cT8iZdcPSs20niCSjXlufZmVBChjqTWzniHlOipMf-x7VeUa8qUJsUcTeK3sfn_kbuUrLwn7326Xyp7ErLANxjTnqHh3Bj0bd0HdcGIgQwERY8vm27V_lJq8LacBO_PCZfTKLwkEjr7bMV_kxcEdjRp-PvHcGqCwrLXbmcVYck9kYMxbFt-dBGWt8QiQD7SrXVynS39_6GR1Rg9e_ZiJ-roBMjFtdnUpfBQOPj-Kt-ccfAMbLttXBcjvQFesSfA4iEHPEmSbraGFD7IKuuNy5Qp5MWOhoi2r-bAeoNL3TcPFoisLwEEzJJJiKpCjeiupvhlwTBHgTWHtutz5zdiquKsjpZrzYFQqBaE3llkQYqPHAn9Q9kHzre118vqhA";
                     if (recaptcha == null)
                     {
                         throw new Exception("Khởi tạo Recaptcha thất bại");

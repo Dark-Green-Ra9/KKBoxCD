@@ -42,6 +42,9 @@
     <Reference Include="ICSharpCode.SharpZipLib, Version=1.3.1.9, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpZipLib.1.3.1\lib\net45\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
+    <Reference Include="Leaf.xNet, Version=5.2.10.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Leaf.xNet.5.2.10\lib\net45\Leaf.xNet.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.AspNetCore.WebUtilities, Version=2.0.2.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNetCore.WebUtilities.2.0.2\lib\netstandard2.0\Microsoft.AspNetCore.WebUtilities.dll</HintPath>
     </Reference>
@@ -256,12 +259,13 @@
     <Compile Include="Core\Manager\ProxyManager.cs" />
     <Compile Include="Core\Manager\SourceManager.cs" />
     <Compile Include="Core\ChromeClient.cs" />
-    <Compile Include="Core\RecaptchaClient.cs" />
     <Compile Include="Core\States.cs" />
     <Compile Include="Core\Support\PageCTL.cs" />
+    <Compile Include="Core\Support\xNetObj .cs" />
     <Compile Include="Core\Utils\Addons.cs" />
     <Compile Include="Core\Utils\Config.cs" />
     <Compile Include="Core\Utils\EqualityComparer.cs" />
+    <Compile Include="Core\XevilClient.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
