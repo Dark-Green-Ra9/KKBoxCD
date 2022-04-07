@@ -27,7 +27,7 @@
     <link href="/static/css/intlTelInput.min.css" rel="stylesheet" crossorigin="anonymous">
 
     <link href="/static/css/account-style.css" rel="stylesheet" crossorigin="anonymous">
-    <link href="/static/css/global-font.css" rel="stylesheet" crossorigin="anonymous">
+    <!--<link href="/static/css/global-font.css" rel="stylesheet" crossorigin="anonymous">-->
     <link href="/static/css/style.css" rel="stylesheet" crossorigin="anonymous">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js"></script>
@@ -94,7 +94,6 @@
                                            placeholder="Email or mobile number"
                                            type="text" />
                                     <span class="mdc-floating-label" id="username-label">Account</span>
-                                    <img class="clear_icon" src="/static/img/ic-clear.svg" alt="clear icon" />
                                     <div class="mdc-line-ripple"></div>
                                 </label>
                             </div>
@@ -151,12 +150,11 @@
                     <div class="bottom_block">
                         <p class="or_hr">or</p>
                         <a id="signup_url" class="btn btn-block btn-default btn-primary" href="/signup">Register</a>
-                        <img class="kkbox_group_logo" src="/static/img/KKCOMPANY-logo-Black.png" height="30px" alt="KKCompany" />
                     </div>
 
                     <div class="dropdown lang-selector">
                         <button id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            English<img class="ic-dropdown" src="/static/img/ic-dropdown.png" alt="dropdown icon">
+                            English
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="dLabel">
 
@@ -179,26 +177,26 @@
             </div>
             <script>
 
-                //var recaptcha_enable = true;
-                //$(() => {
-                //    grecaptcha.ready(() => {
-                //        var setRecaptchaToken = function () {
-                //            grecaptcha.execute('6LcuGcoUAAAAAB8E-zI7hoiQ_fcudMnk9YVZtW4m', { action: 'login' }).then((token) => {
-                //                $('#recaptcha').val(token);
-                //            });
-                //        };
-                //        setRecaptchaToken();
-                //        setInterval(setRecaptchaToken, 100000);
-                //    });
-                //});
+                var recaptcha_enable = false;
+                $(() => {
+                    grecaptcha.ready(() => {
+                        var setRecaptchaToken = function () {
+                            grecaptcha.execute('6LcuGcoUAAAAAB8E-zI7hoiQ_fcudMnk9YVZtW4m', { action: 'login' }).then((token) => {
+                                $('#recaptcha').val(token);
+                            });
+                        };
+                        setRecaptchaToken();
+                        //setInterval(setRecaptchaToken, 100000);
+                    });
+                });
 
 
-                //var target_input = "#show-username";
-                //var itiSwitch = true;
-                //var input = document.getElementById("show_phone_country_code");
-                //var iti = window.intlTelInput(input, {
-                //    initialCountry: "VN",
-                //});
+                var target_input = "#show-username";
+                var itiSwitch = true;
+                var input = document.getElementById("show_phone_country_code");
+                var iti = window.intlTelInput(input, {
+                    initialCountry: "SG",
+                });
             </script>
             <script type="text/javascript" src="/static/js/iti.js"></script>
             <script type="text/javascript" src="/static/js/mdc.js"></script>

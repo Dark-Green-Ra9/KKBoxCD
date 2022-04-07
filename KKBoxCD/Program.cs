@@ -11,18 +11,34 @@ namespace KKBoxCD
         public static void Main()
         {
             Console.OutputEncoding = Encoding.UTF8;
+            Addons.CloseChrome();
             Config config = Config.Instance;
 
-            Addons.CloseChrome();
-            ChromeClient.Instance.Init();
-            //RecaptchaClient.Instance.Init();
-            States.Start();
+            Console.Write("Run Mode [0.Check Exist | 1.Get Plan]: ");
+            char key = Console.ReadKey().KeyChar;
+            Console.WriteLine("");
+            if (key.Equals('0'))
+            {
+                config.Mode = Config.RunMode.CheckExist;
+            }
+            else if (key.Equals('1'))
+            {
+                ChromeClient.Instance.Init();
+                //RecaptchaClient.Instance.Init();
+                config.Mode = Config.RunMode.GetPlan;
+            }
+            else
+            {
+                Main();
+                return;
+            }
 
+            States.Start();
             for (int i = 0; i < config.ThreadSize; i++)
             {
                 States.ThreadSize++;
                 new AutoThread(i).Start();
-                Thread.Sleep(250);
+                Thread.Sleep(100);
             }
 
             Console.ReadKey();

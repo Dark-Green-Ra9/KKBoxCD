@@ -1,6 +1,7 @@
 ﻿using KKBoxCD.Core.Manager;
 using KKBoxCD.Properties;
 using PuppeteerExtraSharp;
+using PuppeteerExtraSharp.Plugins.ExtraStealth;
 using PuppeteerSharp;
 using System;
 using System.Net;
@@ -48,6 +49,7 @@ namespace KKBoxCD.Core
             }
 
             Proxy proxy = ProxyManager.Instance.Random();
+            StealthPlugin stealth = new StealthPlugin();
             PuppeteerExtra extra = new PuppeteerExtra();
             LaunchOptions options = new LaunchOptions()
             {
@@ -57,6 +59,7 @@ namespace KKBoxCD.Core
                 Args = new string[]
                 {
                     //$"--proxy-server=\"{proxy.Address}:{proxy.Port}\"",
+                    "--proxy-server=\"192.168.150.78:10000\"",
                     "--app=\"data:text/html,<title>Recaptcha Client</title>\"",
                     "--window-size=800,600",
                     "--allow-cross-origin-auth-prompt",
@@ -96,7 +99,7 @@ namespace KKBoxCD.Core
                     "--use-mock-keychain",
                 }
             };
-            Browser = extra.LaunchAsync(options).Result;
+            Browser = extra.Use(stealth).LaunchAsync(options).Result;
             Page = Browser.PagesAsync().Result[0];
             Page.SetRequestInterceptionAsync(true).Wait();
             Page.Request += OnRequest;

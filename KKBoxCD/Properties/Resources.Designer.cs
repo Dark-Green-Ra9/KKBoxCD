@@ -19,7 +19,7 @@ namespace KKBoxCD.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -74,7 +74,8 @@ namespace KKBoxCD.Properties {
         ///    var SLASH_URL_SAFE = &apos;_&apos;.charCodeAt(0)
         ///
         ///    function decode(elt) {
-        ///        var code = elt.ch [rest of string was truncated]&quot;;.
+        ///        var code = elt.charCodeAt(0)
+        ///  [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string base64 {
             get {
@@ -101,11 +102,12 @@ namespace KKBoxCD.Properties {
         ///        const root = document.createElement(&quot;div&quot;);
         ///        root.innerHTML = html;
         ///
-        ///        const card = root.querySelector(&apos;.plan_card&apos;);
-        ///        const data = card.innerText.trim().split(&apos;\n&apos;);
-        ///        var plan = &apos;&apos;;
+        ///        if (root.querySelector(&quot;.no_plan&quot;) != null) {
+        ///            return &quot;No Plan&quot;;
+        ///        }
         ///
-        ///        if (data.length  [rest of string was truncated]&quot;;.
+        ///        const card = root.querySelector(&quot;.plan_card&quot;);
+        ///         [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string chrome_client {
             get {
@@ -148,7 +150,8 @@ namespace KKBoxCD.Properties {
         ///function am1(i, x, w, j, c, n) {
         ///    while (--n &gt;= 0) {
         ///        var v = x * this[i++] + w[j] + c;
-        ///        c = Math.floor(v / 0x4 [rest of string was truncated]&quot;;.
+        ///        c = Math.floor(v / 0x4000000);
+        ///        w [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string jsbn {
             get {
@@ -177,7 +180,7 @@ namespace KKBoxCD.Properties {
         ///}
         ///
         ///function bnShortValue() {
-        ///    re [rest of string was truncated]&quot;;.
+        ///    return (this.t == 0) ? [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string jsbn2 {
             get {
@@ -186,7 +189,37 @@ namespace KKBoxCD.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
+        ///   Looks up a localized string similar to challenge = function () {
+        ///    const country_code = &quot;65&quot;;
+        ///    const territory_code = &quot;SG&quot;;
+        ///
+        ///    srp = new SRP();
+        ///    srp.init();
+        ///    srp.computeA();
+        ///
+        ///    $(&quot;#username&quot;).val(window.__username);
+        ///    $(&quot;#ori_username&quot;).val(window.__username);
+        ///    $(&quot;#secret&quot;).val(window.__password);
+        ///    $(&quot;#remember&quot;).val(&quot;&quot;);
+        ///    $(&quot;#phone_country_code&quot;).val(country_code);
+        ///    $(&quot;#phone_territory_code&quot;).val(territory_code);
+        ///
+        ///    $.ajax({
+        ///        method: &quot;POST&quot;,
+        ///        url: &quot;/challenge&quot;,
+        ///        data: {
+        ///     [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string kkbox_inject {
+            get {
+                return ResourceManager.GetString("kkbox_inject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 
+        ///
+        ///&lt;!DOCTYPE html&gt;
         ///&lt;html&gt;
         ///&lt;head&gt;
         ///
@@ -199,7 +232,7 @@ namespace KKBoxCD.Properties {
         ///    &lt;script src=&quot;https://code.jquery.com/jquery-3.4.1.min.js&quot;&gt;&lt;/script&gt;
         ///    &lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js&quot;&gt;&lt;/script&gt;
         ///    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js&quot;
-        ///      [rest of string was truncated]&quot;;.
+        ///  [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string login {
             get {
@@ -229,7 +262,8 @@ namespace KKBoxCD.Properties {
         ///    s || (s = eval(&quot;(function() { try { return Module || {} } catch(e) { return {} } })()&quot;));
         ///    var ba = {},
         ///        t;
-        ///     [rest of string was truncated]&quot;;.
+        ///    for (t in s) {
+        ///       [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string scrypt {
             get {
@@ -263,7 +297,7 @@ namespace KKBoxCD.Properties {
         ///SRP.prototype.init = function (g) {
         ///    switch (g) {
         ///        case &quot;G3072&quot;:
-        ///          [rest of string was truncated]&quot;;.
+        ///            this.N = new BigIntege [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string srp {
             get {

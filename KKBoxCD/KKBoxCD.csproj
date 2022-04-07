@@ -294,6 +294,7 @@
     <Content Include="Resources\js\hashes.min.js" />
     <Content Include="Resources\js\jsbn.js" />
     <Content Include="Resources\js\jsbn2.js" />
+    <Content Include="Resources\js\kkbox.inject.js" />
     <Content Include="Resources\js\scrypt.js" />
     <Content Include="Resources\js\srp.js" />
   </ItemGroup>

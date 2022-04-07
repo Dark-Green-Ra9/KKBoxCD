@@ -43,6 +43,8 @@ namespace KKBoxCD.Core.Utils
 
         public bool IsSocks { get; set; } = false;
 
+        public RunMode Mode { get; set; } = RunMode.CheckExist;
+
         protected Config() { }
 
         public void Save()
@@ -52,6 +54,12 @@ namespace KKBoxCD.Core.Utils
                 File.WriteAllText(Consts.ConfigFile, JsonConvert.SerializeObject(this, Formatting.Indented));
             }
             catch { }
+        }
+
+        public enum RunMode
+        {
+            CheckExist,
+            GetPlan
         }
     }
 }
