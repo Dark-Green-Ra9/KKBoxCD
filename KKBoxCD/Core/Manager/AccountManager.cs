@@ -152,6 +152,5 @@ namespace KKBoxCD.Core.Manager
         NotFound,
         SRPUnsupported,
         LoginFailed,
-        RecaptchaFailed
     }
 }

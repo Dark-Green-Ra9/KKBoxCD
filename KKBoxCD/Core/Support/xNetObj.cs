@@ -82,30 +82,21 @@ namespace KKBoxCD.Core.Support
             this.httpRequest = new Leaf.xNet.HttpRequest()
             {
                 UseCookies = true,
-
                 ConnectTimeout = timeOut * 1000,
                 ReadWriteTimeout = timeOut * 1000,
-
                 Reconnect = false,
                 ReconnectLimit = 5,
                 ReconnectDelay = 1000,
-
                 UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36",
-
-                KeepAlive = false,
-
+                KeepAlive = true,
                 IgnoreProtocolErrors = false,
                 IgnoreInvalidCookie = true,
-
                 AllowAutoRedirect = true,
                 MaximumAutomaticRedirections = 10,
 
                 //SslProtocols = System.Security.Authentication.SslProtocols.Tls12,
 
-                //AcceptEncoding = "gzip",
-                //AcceptEncoding = "gzip, deflate",
                 AcceptEncoding = "gzip, deflate, br",
-
                 AllowEmptyHeaderValues = false
             };
         }
@@ -114,18 +105,22 @@ namespace KKBoxCD.Core.Support
         {
             this.httpRequest["Accept"] = value;
         }
+
         public void SetContentType(string value)
         {
             this.httpRequest["Content-Type"] = value;
         }
+
         public void SetReferer(string value)
         {
             this.httpRequest["Referer"] = value;
         }
+
         public void SetOrigin(string value)
         {
             this.httpRequest["Origin"] = value;
         }
+
         public void SetXMLHttpRequest()
         {
             this.httpRequest["X-Requested-With"] = "XMLHttpRequest";
@@ -150,11 +145,11 @@ namespace KKBoxCD.Core.Support
         {
             if (isSocks5)
             {
-                httpRequest.Proxy = new Leaf.xNet.Socks5ProxyClient(host, port);
+                httpRequest.Proxy = new Socks5ProxyClient(host, port);
             }
             else
             {
-                httpRequest.Proxy = new Leaf.xNet.HttpProxyClient(host, port);
+                httpRequest.Proxy = new HttpProxyClient(host, port);
             }
         }
 
