@@ -262,7 +262,6 @@
     <Compile Include="Core\States.cs" />
     <Compile Include="Core\Support\LeafClient.cs" />
     <Compile Include="Core\Support\PageCTL.cs" />
-    <Compile Include="Core\Support\xNetObj.cs" />
     <Compile Include="Core\Utils\Addons.cs" />
     <Compile Include="Core\Utils\Config.cs" />
     <Compile Include="Core\Utils\EqualityComparer.cs" />

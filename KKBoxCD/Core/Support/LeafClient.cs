@@ -1,12 +1,14 @@
 ﻿using Leaf.xNet;
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace KKBoxCD.Core.Support
 {
+    /// <summary>
+    /// LeafClient improve by DarkGreen inherit from xNetObj by TuanVHIT
+    /// </summary>
     public class LeafClient : IDisposable
     {
         #region Dispose
@@ -54,7 +56,7 @@ namespace KKBoxCD.Core.Support
 
         public bool IsSuccess
         {
-            get => HttpRequest.Response.IsOK && HttpRequest.Response.StatusCode.Equals(HttpStatusCode.OK);
+            get => HttpRequest.Response.IsOK && HttpRequest.Response.StatusCode.Equals(Leaf.xNet.HttpStatusCode.OK);
         }
 
         public bool IsHasContent
@@ -69,7 +71,7 @@ namespace KKBoxCD.Core.Support
 
         public bool IsForbidden
         {
-            get => HttpRequest.Response.StatusCode.Equals(HttpStatusCode.Forbidden);
+            get => HttpRequest.Response.StatusCode.Equals(Leaf.xNet.HttpStatusCode.Forbidden);
         }
 
         public string Accept
@@ -82,8 +84,8 @@ namespace KKBoxCD.Core.Support
                 }
                 return null;
             }
-            set => HttpRequest["Accept"] = value;
-        }
+            set => HttpRequest["accept"] = value;
+        } 
 
         public string ContentType
         {
@@ -95,7 +97,7 @@ namespace KKBoxCD.Core.Support
                 }
                 return null;
             }
-            set => HttpRequest["Content-Type"] = value;
+            set => HttpRequest["content-type"] = value;
         }
 
         public string Referer
@@ -108,7 +110,7 @@ namespace KKBoxCD.Core.Support
                 }
                 return null;
             }
-            set => HttpRequest["Referer"] = value;
+            set => HttpRequest["referer"] = value;
         }
 
         public string Origin
@@ -121,7 +123,7 @@ namespace KKBoxCD.Core.Support
                 }
                 return null;
             }
-            set => HttpRequest["Origin"] = value;
+            set => HttpRequest["origin"] = value;
         }
 
         public string RequestedWith
@@ -134,7 +136,7 @@ namespace KKBoxCD.Core.Support
                 }
                 return null;
             }
-            set => HttpRequest["X-Requested-With"] = value;
+            set => HttpRequest["x-requested-with"] = value;
         }
 
         public string UserAgent
@@ -162,6 +164,16 @@ namespace KKBoxCD.Core.Support
                 AcceptEncoding = "gzip, deflate, br",
                 AllowEmptyHeaderValues = false
             };
+
+            Accept = "*/*";
+            RequestedWith = "XMLHttpRequest";
+            HttpRequest["sec-ch-ua-mobile"] = "?0";
+            HttpRequest["sec-ch-ua-platform"] = "Windows";
+            HttpRequest["sec-fetch-site"] = "same-origin";
+            HttpRequest["sec-fetch-mode"] = "cors";
+            HttpRequest["sec-fetch-dest"] = "empty";
+            HttpRequest["accept-language"] = "en,en-US;q=0.9";
+            HttpRequest["sec-ch-ua"] = "\" Not A; Brand\";v=\"99\", \"Chromium\";v=\"99\", \"Google Chrome\";v=\"99\"";
         }
 
         public void SetXMLHttpRequest()
@@ -175,7 +187,7 @@ namespace KKBoxCD.Core.Support
             HttpRequest[name] = value;
         }
 
-        private void RemovesHeader(string name)
+        public void RemovesHeader(string name)
         {
             if (HttpRequest.ContainsHeader(name))
             {
@@ -303,6 +315,24 @@ namespace KKBoxCD.Core.Support
                 else {
                     return null;
                 }
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public string StringifyCookies(string url)
+        {
+            try
+            {
+                CookieCollection cookies = HttpRequest.Cookies.GetCookies(url);
+                StringBuilder builder = new StringBuilder();
+                foreach (Cookie cookie in cookies)
+                {
+                    _ = builder.Append(cookie.Name).Append("=").Append(cookie.Value).Append(";");
+                }
+                return builder.ToString();
             }
             catch
             {

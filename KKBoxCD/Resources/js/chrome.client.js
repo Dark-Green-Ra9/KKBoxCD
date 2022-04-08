@@ -286,7 +286,7 @@ function GetPlanFromHTML(html) {
 
         return plan;
     } catch {
-        return "Get Failed";
+        return "Get Plan Failed";
     }
 }
 

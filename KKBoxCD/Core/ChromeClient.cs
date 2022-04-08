@@ -6,8 +6,48 @@ using System;
 
 namespace KKBoxCD.Core
 {
-    class ChromeClient
+    class ChromeClient: IDisposable
     {
+        #region Dispose
+
+        private bool _Disposed = false;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_Disposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                if (Page != null)
+                {
+                    try { Page.CloseAsync().Wait(); } catch { }
+                    Page = null;
+                }
+                if (Browser != null)
+                {
+                    try { Browser.CloseAsync().Wait(); } catch { }
+                    Browser = null;
+                }
+            }
+            _Disposed = true;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~ChromeClient()
+        {
+            Dispose(false);
+        }
+
+        #endregion
+
         #region Singleton
 
         private static readonly Lazy<ChromeClient> Singleton = new Lazy<ChromeClient>(() => new ChromeClient());
@@ -56,7 +96,7 @@ namespace KKBoxCD.Core
             PuppeteerExtra extra = new PuppeteerExtra();
             LaunchOptions options = new LaunchOptions()
             {
-                Headless = !mConfig.IsDebug,
+                Headless = true,
                 ExecutablePath = Consts.ChromeFile,
                 Args = new string[]
                 {

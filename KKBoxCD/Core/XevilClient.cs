@@ -19,7 +19,7 @@ namespace KKBoxCD.Core
 
         private readonly List<string> PoolData;
 
-        private readonly int MaxPoolSize = 2;
+        private readonly int MaxPoolSize = 1;
 
         protected XevilClient()
         {
@@ -47,7 +47,7 @@ namespace KKBoxCD.Core
                     try
                     {
                         RestRequest request = new RestRequest("http://xmenxevil.zapto.org/Xevil/createTask", Method.Post);
-                        string body = "{\"clientKey\":\"4b21537f9c9426b6e98213f27634202e\",\"task\":{\"websiteURL\":\"https://kkid.kkbox.com/login\",\"websiteKey\":\"6LcuGcoUAAAAAB8E-zI7hoiQ_fcudMnk9YVZtW4m\",\"minScore\":0.5,\"pageAction\":\"login\",\"type\":\"RecaptchaV3TaskProxyless\"}}";
+                        string body = "{\"clientKey\":\"4b21537f9c9426b6e98213f27634202e\",\"task\":{\"websiteURL\":\"https://kkid.kkbox.com/login\",\"websiteKey\":\"6LcuGcoUAAAAAB8E-zI7hoiQ_fcudMnk9YVZtW4m\",\"minScore\":0.7,\"pageAction\":\"login\",\"type\":\"RecaptchaV3TaskProxyless\"}}";
                         request.AddHeader("Content-Type", "application/json");
                         request.AddBody(body, "application/json");
                         RestResponse response = client.ExecuteAsync(request).Result;
@@ -66,16 +66,19 @@ namespace KKBoxCD.Core
                                 response = client.ExecuteAsync(request).Result;
                                 data = JsonConvert.DeserializeObject<dynamic>(response.Content);
 
-                                string status = data.status;
-                                if (status.Equals("ready"))
+                                if (data != null)
                                 {
-                                    string token = data.solution.text;
-                                    PoolData.Add(token);
+                                    string status = data.status;
+                                    if (status.Equals("ready"))
+                                    {
+                                        string token = data.solution.text;
+                                        PoolData.Add(token);
+                                        break;
+                                    }
+                                    else if (!status.Equals("processing"))
+                                {
                                     break;
                                 }
-                                else if (!status.Equals("processing"))
-                                {
-                                    break;
                                 }
                             }
                             catch { }
