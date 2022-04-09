@@ -52,6 +52,7 @@ namespace KKBoxCD.Core.Support
         public string Response
         {
             get => HttpRequest.Response.ToString();
+
         }
 
         public bool IsSuccess
@@ -223,12 +224,12 @@ namespace KKBoxCD.Core.Support
             {
                 HttpRequest.Get(url);
                 await Task.Delay(DelayRequest);
-                return true;
             }
             catch
             {
-                return false;
+                //return false;
             }
+            return true;
         }
 
         public async Task<bool> HeadAsync(string url)
@@ -266,12 +267,12 @@ namespace KKBoxCD.Core.Support
             {
                 HttpRequest.Post(url, requestParams);
                 await Task.Delay(DelayRequest);
-                return true;
             }
             catch
             {
-                return false;
+                //return false;
             }
+            return true;
         }
 
         public async Task<bool> PostAsync(string url, HttpContent content)

@@ -13,24 +13,19 @@ namespace KKBoxCD
             Console.OutputEncoding = Encoding.UTF8;
             Addons.CloseChrome();
             Config config = Config.Instance;
+            ChromeClient chrome = ChromeClient.Instance;
+            XevilClient xevil = XevilClient.Instance;
 
-            Console.Write("Run Mode [0.Check Exist | 1.Get Plan]: ");
-            char key = Console.ReadKey().KeyChar;
-            Console.WriteLine("");
-            if (key.Equals('0'))
+            chrome.Init();
+            xevil.PoolSize = config.RecaptchaPoolSize;
+            xevil.ThreadSize = config.RecaptchaThreadSize;
+            xevil.Start();
+
+            Console.WriteLine(">> Đợi bể reCaptcha sẵn sàng");
+            while (xevil.Size() < config.RecaptchaWaitSize)
             {
-                config.Mode = Config.RunMode.CheckExist;
-            }
-            else if (key.Equals('1'))
-            {
-                ChromeClient.Instance.Init();
-                XevilClient.Instance.Start();
-                config.Mode = Config.RunMode.GetPlan;
-            }
-            else
-            {
-                Main();
-                return;
+                Console.WriteLine("  +  Dung tích: {0}/{1}", xevil.Size(), xevil.PoolSize);
+                Thread.Sleep(3000);
             }
 
             States.Start();
@@ -40,8 +35,6 @@ namespace KKBoxCD
                 new AutoThread(i).Start();
                 Thread.Sleep(100);
             }
-
-            Console.ReadKey();
         }
     }
 }

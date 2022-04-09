@@ -22,8 +22,7 @@ namespace KKBoxCD.Core
 {
     /// <summary>
     /// Việc còn lại
-    /// Sử lý không tồn tại và khóa IP
-    /// Sử lý đăng nhập không cần mã hóa mật khẩu
+    /// Xử lý đăng nhập không cần mã hóa mật khẩu
     /// </summary>
     public class AutoThread
     {
@@ -77,20 +76,10 @@ namespace KKBoxCD.Core
 
         public void Start()
         {
-            if (mConfig.Mode == Config.RunMode.CheckExist)
+            new Thread(GetPlan)
             {
-                new Thread(CheckExist)
-                {
-                    Name = "AutoThread"
-                }.Start();
-            }
-            else
-            {
-                new Thread(GetPlan)
-                {
-                    Name = "AutoThread"
-                }.Start();
-            }
+                Name = "AutoThread"
+            }.Start();
         }
 
         private void Log(string content)
@@ -288,7 +277,7 @@ namespace KKBoxCD.Core
             while (true)
             {
                 Log(">> Khởi tạo biến gửi");
-                string referer = "https://www.kkbox.com/";
+                string referer = "https://mykkid.kkbox.com/";
                 string recaptcha = string.Empty;
                 string remember = "1";
                 string redirect = string.Empty;
@@ -302,6 +291,8 @@ namespace KKBoxCD.Core
 
                 Log(">> Khởi tạo biến nháp");
                 LeafClient client = null;
+                Recaptcha recaptcha_obj = null;
+                bool is_srp_unsupported = false;
                 dynamic data = null;
                 string A = null;
                 string g = null;
@@ -310,19 +301,19 @@ namespace KKBoxCD.Core
 
                 try
                 {
-                    Log(">> Lấy Proxy");
-                    Proxy = mProxyManager.Random();
-                    if (Proxy == null)
-                    {
-                        Log(">> Đã hết Proxy");
-                        break;
-                    }
-
                     Log(">> Lấy Account");
                     Account = mAccountManager.Get();
                     if (Account == null)
                     {
                         Log(">> Đã hết Account");
+                        break;
+                    }
+
+                    Log(">> Lấy Proxy");
+                    Proxy = mProxyManager.Random();
+                    if (Proxy == null)
+                    {
+                        Log(">> Đã hết Proxy");
                         break;
                     }
 
@@ -334,13 +325,35 @@ namespace KKBoxCD.Core
                         Origin = "https://kkid.kkbox.com",
                         Referer = "https://kkid.kkbox.com/login"
                     };
-                    //client.SetProxy(Proxy.Address, Proxy.Port, mConfig.IsSocks);
-                    
+                    client.SetProxy(Proxy.Address, Proxy.Port, mConfig.IsSocks);
+                    client.SetNewCookies();
+                    //client.SetProxy("192.168.150.167", 8888, false);
+
                     Log(">> Yêu cầu Page");
                     bool success = client.GetAsync("https://kkid.kkbox.com/login").Result;
                     if (!success)
                     {
                         throw new Exception("Yêu cầu Page thất bại");
+                    }
+
+                    Log(">> Kiểm tra Proxy");
+                    Thread.Sleep(250);
+                    client.SetNewCookies();
+                    success = client.PostAsync("https://kkid.kkbox.com/challenge", new RequestParams
+                    {
+                        ["username"] = PerfectTest[new Random().Next(0, PerfectTest.Length)],
+                        ["phone_country_code"] = phone_country_code,
+                        ["phone_territory_code"] = phone_territory_code,
+                        ["a"] = Addons.RandomHash(512)
+                    }).Result;
+                    if (!success)
+                    {
+                        throw new Exception("Kiểm tra Proxy thất bại");
+                    }
+                    if (client.HttpRequest.Response.StatusCode == Leaf.xNet.HttpStatusCode.NotFound)
+                    {
+                        States.ProxyBlock++;
+                        throw new Exception("Proxy đang bị chặn");
                     }
 
                     Log(">> Trích xuất CountryCode");
@@ -365,6 +378,7 @@ namespace KKBoxCD.Core
                     }
 
                     Log(">> Yêu cầu Friend");
+                    Thread.Sleep(250);
                     success = client.GetAsync("https://kkid.kkbox.com/friend").Result;
                     data = JsonConvert.DeserializeObject<dynamic>(client.Response);
                     if (!success || data == null || data.q == null)
@@ -395,6 +409,7 @@ namespace KKBoxCD.Core
                     }
 
                     Log(">> Yêu cầu Challenge");
+                    Thread.Sleep(250);
                     client.SetNewCookies();
                     success = client.PostAsync("https://kkid.kkbox.com/challenge", new RequestParams
                     {
@@ -417,7 +432,6 @@ namespace KKBoxCD.Core
 
                         if (status_code.Equals("404"))
                         {
-                            // Không tồn tại hoặc khóa IP
                             States.NotFound++;
                             Account.Status = AccountStatus.NotFound;
                             Account.Data = error;
@@ -427,8 +441,8 @@ namespace KKBoxCD.Core
                         }
                         else if (status_code.Equals("403"))
                         {
-                            // Không cần mã hóa mật khẩu
                             t = data.data.t;
+                            is_srp_unsupported = true;
                         }
                         else
                         {
@@ -451,131 +465,144 @@ namespace KKBoxCD.Core
                         throw new Exception("Yêu cầu Challenge thất bại");
                     }
 
-                    Log(">> Kiểm tra G");
-                    if (!g.Equals("G2048"))
+                    if (!is_srp_unsupported)
                     {
-                        States.Other++;
-                        Account.Status = AccountStatus.Other;
-                        Account.Data = string.Concat("Non G2048 - ", g);
-                        mAccountManager.Write(Account);
-                        Account = null;
-                        continue;
-                    }
-
-                    Log(">> Tái khởi tạo SRP, tính A");
-                    try
-                    {
-                        A = mChromeClient.Page.EvaluateFunctionAsync<string>(@"async (name, g, s) => {
-                            const srp = GetSRP(name);
-                            srp.init(g);
-                            srp.s = s;
-                            srp.computeA();
-                            return srp.A.toString(16);
-                        }", ori_username, g, s).Result;
-                    }
-                    catch
-                    {
-                        throw new Exception("Tái khởi tạo SRP, tính A thất bại");
-                    }
-
-                    Log(">> Yêu cầu Challenge Verify");
-                    success = client.PostAsync("https://kkid.kkbox.com/challenge_verify", new RequestParams
-                    {
-                        ["username"] = username,
-                        ["a"] = A
-                    }).Result;
-                    data = JsonConvert.DeserializeObject<dynamic>(client.Response);
-                    if (!success || data == null)
-                    {
-                        throw new Exception("Yêu cầu Challenge Verify thất bại");
-                    }
-
-                    Log(">> Kiểm tra Challenge Verify");
-                    if (data.error != null)
-                    {
-                        string error = data.error;
-                        string status_code = data.status_code;
-
-                        States.Other++;
-                        Account.Status = AccountStatus.Other;
-                        Account.Data = error;
-                        mAccountManager.Write(Account);
-                        Account = null;
-                        continue;
-                    }
-                    else if (data.B != null)
-                    {
-                        B = data.B;
-                    }
-                    else
-                    {
-                        throw new Exception("Yêu cầu Challenge Verify thất bại");
-                    }
-
-                    Log(">> Gán giá trị SRP");
-                    try
-                    {
-                        mChromeClient.Page.EvaluateFunctionAsync(@"async (name, username, secret, B) => {
-                            const srp = GetSRP(name);
-                            srp.I = username;
-                            srp.p = srp.computeHash(secret);
-                            srp.B = new BigInteger(B, 16);
-                        }", ori_username, username, secret, B).Wait();
-                    }
-                    catch
-                    {
-                        throw new Exception("Gán giá trị SRP thất bại");
-                    }
-
-                    Log(">> Kiểm tra ReChallenge");
-                    try
-                    {
-                        bool re_challenge = mChromeClient.Page.EvaluateFunctionAsync<bool>(@"async (name) => {
-                            const srp = GetSRP(name);
-                            return !srp.verifyB() && srp.verifyHAB();
-                        }", ori_username).Result;
-                        if (re_challenge)
+                        Log(">> Kiểm tra G");
+                        if (!g.Equals("G2048"))
                         {
                             States.Other++;
                             Account.Status = AccountStatus.Other;
-                            Account.Data = "ReChallenge";
+                            Account.Data = string.Concat("Non G2048 - ", g);
                             mAccountManager.Write(Account);
                             Account = null;
                             continue;
                         }
-                    }
-                    catch { }
 
-                    Log(">> Mã hóa mật khẩu");
-                    try
-                    {
-                        secret = mChromeClient.Page.EvaluateFunctionAsync<string>(@"async (name) => {
-                            const srp = GetSRP(name);
-                            srp.computeVerifier();
-                            let ck = srp.computeClientK();
-                            RemoveSRP(name);
-                            return ck;
-                        }", ori_username).Result;
-                    }
-                    catch
-                    {
-                        throw new Exception("Mã hóa mật khẩu thất bại");
+                        Log(">> Tái khởi tạo SRP, tính A");
+                        try
+                        {
+                            A = mChromeClient.Page.EvaluateFunctionAsync<string>(@"async (name, g, s) => {
+                                const srp = GetSRP(name);
+                                srp.init(g);
+                                srp.s = s;
+                                srp.computeA();
+                                return srp.A.toString(16);
+                            }", ori_username, g, s).Result;
+                        }
+                        catch
+                        {
+                            throw new Exception("Tái khởi tạo SRP, tính A thất bại");
+                        }
+
+                        Log(">> Yêu cầu Challenge Verify");
+                        Thread.Sleep(250);
+                        success = client.PostAsync("https://kkid.kkbox.com/challenge_verify", new RequestParams
+                        {
+                            ["username"] = username,
+                            ["a"] = A
+                        }).Result;
+                        data = JsonConvert.DeserializeObject<dynamic>(client.Response);
+                        if (!success || data == null)
+                        {
+                            throw new Exception("Yêu cầu Challenge Verify thất bại");
+                        }
+
+                        Log(">> Kiểm tra Challenge Verify");
+                        if (data.error != null)
+                        {
+                            string error = data.error;
+                            string status_code = data.status_code;
+
+                            States.Other++;
+                            Account.Status = AccountStatus.Other;
+                            Account.Data = error;
+                            mAccountManager.Write(Account);
+                            Account = null;
+                            continue;
+                        }
+                        else if (data.B != null)
+                        {
+                            B = data.B;
+                        }
+                        else
+                        {
+                            throw new Exception("Yêu cầu Challenge Verify thất bại");
+                        }
+
+                        Log(">> Gán giá trị SRP");
+                        try
+                        {
+                            mChromeClient.Page.EvaluateFunctionAsync(@"async (name, username, secret, B) => {
+                                const srp = GetSRP(name);
+                                srp.I = username;
+                                srp.p = srp.computeHash(secret);
+                                srp.B = new BigInteger(B, 16);
+                            }", ori_username, username, secret, B).Wait();
+                        }
+                        catch
+                        {
+                            throw new Exception("Gán giá trị SRP thất bại");
+                        }
+
+                        Log(">> Kiểm tra ReChallenge");
+                        try
+                        {
+                            bool re_challenge = mChromeClient.Page.EvaluateFunctionAsync<bool>(@"async (name) => {
+                                const srp = GetSRP(name);
+                                return !srp.verifyB() && srp.verifyHAB();
+                            }", ori_username).Result;
+                            if (re_challenge)
+                            {
+                                States.Other++;
+                                Account.Status = AccountStatus.Other;
+                                Account.Data = "ReChallenge";
+                                mAccountManager.Write(Account);
+                                Account = null;
+                                continue;
+                            }
+                        }
+                        catch { }
+
+                        Log(">> Mã hóa mật khẩu");
+                        try
+                        {
+                            secret = mChromeClient.Page.EvaluateFunctionAsync<string>(@"async (name) => {
+                                const srp = GetSRP(name);
+                                srp.computeVerifier();
+                                let ck = srp.computeClientK();
+                                RemoveSRP(name);
+                                return ck;
+                            }", ori_username).Result;
+                        }
+                        catch
+                        {
+                            throw new Exception("Mã hóa mật khẩu thất bại");
+                        }
                     }
 
                     Log(">> Khởi tạo Recaptcha");
-                    recaptcha = mXevilClient.Get();
-                    if (recaptcha == null)
+                    while (true)
                     {
-                        throw new Exception("Khởi tạo Recaptcha thất bại");
+                        recaptcha_obj = mXevilClient.Get();
+                        if (recaptcha_obj != null && !recaptcha_obj.IsExpired())
+                        {
+                            break;
+                        }
+                        Thread.Sleep(3000);
                     }
+                    recaptcha_obj.WaitForCanUseIt();
+                    recaptcha = recaptcha_obj.Token;
 
                     Log(">> Yêu cầu Submit");
+                    Thread.Sleep(250);
+                    client.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9";
                     client.AddHeader("sec-fetch-site", "same-origin");
                     client.AddHeader("sec-fetch-mode", "navigate");
                     client.AddHeader("sec-fetch-user", "?1");
                     client.AddHeader("sec-fetch-dest", "document");
                     client.AddHeader("upgrade-insecure-requests", "1");
                     client.AddHeader("cache-control", "max-age=0");
+                    client.AddHeader("upgrade-insecure-requests", "1");
                     client.RemovesHeader("x-requested-with");
                     success = client.PostAsync("https://kkid.kkbox.com/login", new RequestParams
                     {
@@ -591,7 +618,7 @@ namespace KKBoxCD.Core
                         ["secret"] = secret,
                         ["t"] = t,
                     }).Result;
-                    recaptcha = null;
+                    recaptcha_obj = null;
                     if (!success)
                     {
                         throw new Exception("Yêu cầu Submit thất bại");
@@ -672,9 +699,9 @@ namespace KKBoxCD.Core
                     {
                         client.Dispose();
                     }
-                    if (recaptcha != null)
+                    if (recaptcha_obj != null)
                     {
-                        mXevilClient.Push(recaptcha);
+                        mXevilClient.Push(recaptcha_obj);
                     }
                     if (Account != null)
                     {
@@ -819,9 +846,9 @@ namespace KKBoxCD.Core
                             throw new Exception("Tiêm trích trang");
                         }
 
-                        Log(">> Khởi tạo Recaptcha");
-                        recaptcha = mXevilClient.Get();
-                        if (recaptcha == null)
+                        //Log(">> Khởi tạo Recaptcha");
+                        //recaptcha = mXevilClient.Get();
+                        //if (recaptcha == null)
                         {
                             throw new Exception("Khởi tạo Recaptcha thất bại");
                         }

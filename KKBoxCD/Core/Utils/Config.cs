@@ -35,6 +35,12 @@ namespace KKBoxCD.Core.Utils
 
         public int ThreadSize { get; set; } = 1;
 
+        public int RecaptchaPoolSize { get; set; } = 5;
+
+        public int RecaptchaThreadSize { get; set; } = 3;
+
+        public int RecaptchaWaitSize { get; set; } = 3;
+
         public bool DuplProxy { get; set; } = false;
 
         public bool ShowExc { get; set; } = false;
@@ -42,8 +48,6 @@ namespace KKBoxCD.Core.Utils
         public bool IsDebug { get; set; } = false;
 
         public bool IsSocks { get; set; } = false;
-
-        public RunMode Mode { get; set; } = RunMode.CheckExist;
 
         protected Config() { }
 
@@ -54,12 +58,6 @@ namespace KKBoxCD.Core.Utils
                 File.WriteAllText(Consts.ConfigFile, JsonConvert.SerializeObject(this, Formatting.Indented));
             }
             catch { }
-        }
-
-        public enum RunMode
-        {
-            CheckExist,
-            GetPlan
         }
     }
 }

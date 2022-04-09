@@ -49,10 +49,10 @@ namespace KKBoxCD.Core
                         //    ThreadSize, mManager.Count(), total,
                         //    Perfect, NotFound, LoginFailed, RecaptchaFailed);
 
-                        Console.WriteLine("Runtime: {0}d:{1}h:{2}m{3}s | Thread Size: {4} | Account: {5} | Total: {6} | Perfect: {7} | NotFound: {8} | SRPUnsupported: {9} | Other: {10} | ProxyBlock: {11}",
-                            time.Days, time.Hours, time.Minutes, time.Seconds,
-                            ThreadSize, mManager.Count(), total,
-                            Perfect, NotFound, SRPUnsupported, Other, ProxyBlock);
+                        //Console.WriteLine("Runtime: {0}d:{1}h:{2}m{3}s | Thread Size: {4} | Account: {5} | Total: {6} | Perfect: {7} | NotFound: {8} | SRPUnsupported: {9} | Other: {10} | ProxyBlock: {11}",
+                        //    time.Days, time.Hours, time.Minutes, time.Seconds,
+                        //    ThreadSize, mManager.Count(), total,
+                        //    Perfect, NotFound, SRPUnsupported, Other, ProxyBlock);
                     }
                     else
                     {

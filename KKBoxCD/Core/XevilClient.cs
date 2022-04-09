@@ -17,18 +17,22 @@ namespace KKBoxCD.Core
 
         #endregion
 
-        private readonly List<string> PoolData;
+        private readonly List<Recaptcha> PoolData;
 
-        private readonly int MaxPoolSize = 1;
+        public int PoolSize { get; set; } = 5;
+
+        public int ThreadSize { get; set; } = 2;
+
+        public int SolvingSize { get; private set; } = 0;
 
         protected XevilClient()
         {
-            PoolData = new List<string>();
+            PoolData = new List<Recaptcha>();
         }
 
         public void Start()
         {
-            for (int i = 0; i < 1; i++)
+            for (int i = 0; i < ThreadSize; i++)
             {
                 new Thread(Work).Start();
             }
@@ -42,14 +46,16 @@ namespace KKBoxCD.Core
             });
             while (true)
             {
-                if (PoolData.Count < MaxPoolSize)
+                if (PoolData.Count + SolvingSize < PoolSize)
                 {
                     try
                     {
+                        SolvingSize++;
                         RestRequest request = new RestRequest("http://xmenxevil.zapto.org/Xevil/createTask", Method.Post);
-                        string body = "{\"clientKey\":\"4b21537f9c9426b6e98213f27634202e\",\"task\":{\"websiteURL\":\"https://kkid.kkbox.com/login\",\"websiteKey\":\"6LcuGcoUAAAAAB8E-zI7hoiQ_fcudMnk9YVZtW4m\",\"minScore\":0.7,\"pageAction\":\"login\",\"type\":\"RecaptchaV3TaskProxyless\"}}";
+                        string body = "{\"clientKey\":\"4b21537f9c9426b6e98213f27634202e\",\"task\":{\"websiteURL\":\"https://kkid.kkbox.com/login\",\"websiteKey\":\"6LcuGcoUAAAAAB8E-zI7hoiQ_fcudMnk9YVZtW4m\",\"minScore\":0.9,\"pageAction\":\"login\",\"type\":\"RecaptchaV3TaskProxyless\"}}";
                         request.AddHeader("Content-Type", "application/json");
                         request.AddBody(body, "application/json");
+
                         RestResponse response = client.ExecuteAsync(request).Result;
                         dynamic data = JsonConvert.DeserializeObject<dynamic>(response.Content);
 
@@ -63,53 +69,57 @@ namespace KKBoxCD.Core
                                 body = string.Concat("{\"clientKey\":\"4b21537f9c9426b6e98213f27634202e\",\"taskId\":", task_id, "}");
                                 request.AddHeader("Content-Type", "application/json");
                                 request.AddBody(body, "application/json");
+
                                 response = client.ExecuteAsync(request).Result;
                                 data = JsonConvert.DeserializeObject<dynamic>(response.Content);
-
-                                if (data != null)
+                                
+                                string status = data.status;
+                                if (status.Equals("ready"))
                                 {
-                                    string status = data.status;
-                                    if (status.Equals("ready"))
+                                    Recaptcha recaptcha = new Recaptcha()
                                     {
-                                        string token = data.solution.text;
-                                        PoolData.Add(token);
-                                        break;
-                                    }
-                                    else if (!status.Equals("processing"))
-                                {
+                                        Token = data.solution.text,
+                                        Time = DateTime.Now
+                                    };
+                                    PoolData.Add(recaptcha);
                                     break;
                                 }
+                                else if (!status.Equals("processing"))
+                                {
+                                    break;
                                 }
                             }
                             catch { }
 
-                            Thread.Sleep(5000);
-                            timeout -= 5000;
+                            Thread.Sleep(3000);
+                            timeout -= 3000;
                         }
                     }
                     catch { }
+                    finally
+                    {
+                        if (SolvingSize > 0)
+                        {
+                            SolvingSize--;
+                        }
+                    }
                 }
                 Thread.Sleep(2000);
             }
         }
 
-        public string Get(int timeout = 30000)
+        public Recaptcha Get()
         {
-            while (timeout > 0)
+            if (PoolData.Any())
             {
-                if (PoolData.Any())
-                {
-                    string token = PoolData[0];
-                    PoolData.RemoveAt(0);
-                    return token;
-                }
-                Thread.Sleep(5000);
-                timeout -= 5000;
+                Recaptcha recaptcha = PoolData[0];
+                PoolData.RemoveAt(0);
+                return recaptcha;
             }
             return null;
         }
 
-        public void Push(string token)
+        public void Push(Recaptcha token)
         {
             PoolData.Add(token);
         }
@@ -117,6 +127,27 @@ namespace KKBoxCD.Core
         public int Size()
         {
             return PoolData.Count;
+        }
+    }
+
+    public class Recaptcha
+    {
+        public string Token { get; set; } = string.Empty;
+
+        public DateTime Time { get; set; } = DateTime.MinValue;
+
+        public bool IsExpired()
+        {
+            return DateTime.Now.Subtract(Time).TotalSeconds >= 100;
+        }
+
+        public void WaitForCanUseIt()
+        {
+            int sec = (int)DateTime.Now.Subtract(Time).TotalSeconds;
+            if (sec < 6)
+            {
+                Thread.Sleep((6 - sec) * 1000);
+            }
         }
     }
 }
